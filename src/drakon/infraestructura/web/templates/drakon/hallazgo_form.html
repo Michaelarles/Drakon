@@ -1,0 +1,71 @@
+{% extends "drakon/base.html" %}{% load static %}
+{% block titulo %}{% if hallazgo %}Editar {{ hallazgo.codigo }}{% else %}Nuevo hallazgo{% endif %}{% endblock %}
+{% block contenido %}
+<nav aria-label="Ruta"><ol class="breadcrumb small mb-2">
+  <li class="breadcrumb-item"><a href="{% url 'auditoria_lista' %}">Auditorías</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'auditoria_detalle' a.id %}">{{ a.organizacion }}</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'hallazgos' a.id %}">Hallazgos</a></li>
+  <li class="breadcrumb-item active" aria-current="page">{% if hallazgo %}Editar {{ hallazgo.codigo }}{% else %}Nuevo{% endif %}</li>
+</ol></nav>
+<h1 class="titulo">{% if hallazgo %}Editar hallazgo {{ hallazgo.codigo }}{% else %}Nuevo hallazgo{% endif %}</h1>
+<p class="subtitulo mb-4">{% if hallazgo %}El código y las recomendaciones se conservan; las recomendaciones se editan desde la lista de hallazgos.{% else %}El código H-nn se asigna automáticamente.{% endif %} Los campos con <span style="color:#A8321F">*</span> son obligatorios.</p>
+
+{% if not editable %}
+<div class="alert alert-info"><img src="{% static 'drakon/avatar/ayuda.png' %}" alt=""><div>Los hallazgos se registran con la auditoría en ejecución o en revisión.</div></div>
+{% elif sin_controles %}
+<section class="tarjeta momento">
+  <img src="{% static 'drakon/avatar/organizando.png' %}" alt="">
+  <h2>Primero evalúa los controles</h2>
+  <p class="text-muted mb-2">Un hallazgo se asocia a un control ya evaluado que no sea «No aplicable».</p>
+  <a class="btn btn-primary" href="{% url 'evaluar_inicio' a.id %}">Ir a la evaluación</a>
+</section>
+{% else %}
+<div class="d-flex flex-wrap gap-4 align-items-start">
+  <form method="post" novalidate class="tarjeta tarjeta-cuerpo p-4" style="flex: 999 1 560px; max-width: 900px">{% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert alert-danger"><img src="{% static 'drakon/avatar/error.png' %}" alt=""><div>{{ form.non_field_errors|join:" " }}</div></div>{% endif %}
+    <div class="row g-3">
+      {% for campo in form %}
+      {% if campo.name == "recomendacion" %}
+      <div class="col-12 mt-4"><h2 style="font-size:1.05rem" class="mb-0">Recomendación asociada (RF06)</h2><div class="form-text">Opcional aquí; puedes agregarla después. Es obligatoria para cerrar la auditoría.</div></div>
+      {% endif %}
+      <div class="{% if campo.name in 'id_control severidad prioridad plazo_dias' %}col-md-6{% else %}col-12{% endif %}">
+        <label for="{{ campo.id_for_label }}" class="form-label {% if campo.field.required %}requerido{% endif %}">{{ campo.label }}</label>
+        {{ campo }}
+        {% for e in campo.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+    <div class="d-flex flex-wrap gap-2 mt-4">
+      <button class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> {% if hallazgo %}Guardar cambios{% else %}Guardar hallazgo{% endif %}</button>
+      <a class="btn btn-outline-secondary" href="{% url 'hallazgos' a.id %}">Cancelar</a>
+    </div>
+  </form>
+  <aside class="ayuda-drakon" style="flex: 1 1 280px; max-width: 360px; align-items: flex-start">
+    <img src="{% static 'drakon/avatar/ayuda.png' %}" alt="">
+    <div class="small text-muted" style="line-height:1.55">
+      <b class="text-body">Estructura de un hallazgo</b><br>
+      <b>Condición:</b> lo que encontraste.<br>
+      <b>Criterio:</b> lo que exige el control (se llena solo al elegirlo).<br>
+      <b>Causa:</b> por qué ocurre.<br>
+      <b>Efecto:</b> el riesgo para la organización.
+    </div>
+  </aside>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+{{ criterios|json_script:"criterios" }}
+<script>
+(function () {
+  var criterios = JSON.parse(document.getElementById('criterios').textContent);
+  var sel = document.getElementById('id_id_control'), crit = document.getElementById('id_criterio');
+  if (sel && crit) sel.addEventListener('change', function () {
+    if (criterios[sel.value] && (!crit.value.trim() || crit.dataset.auto === '1')) { crit.value = criterios[sel.value]; crit.dataset.auto = '1'; }
+  });
+  if (crit) crit.addEventListener('input', function () { crit.dataset.auto = '0'; });
+  document.querySelectorAll('.invalid-feedback').forEach(function (f) {
+    var c = f.parentElement.querySelector('.form-control, .form-select'); if (c) { c.classList.add('is-invalid'); c.setAttribute('aria-invalid', 'true'); }
+  });
+})();
+</script>
+{% endblock %}

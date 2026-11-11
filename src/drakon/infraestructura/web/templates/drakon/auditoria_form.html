@@ -1,0 +1,43 @@
+{% extends "drakon/base.html" %}{% load static %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block contenido %}
+<nav aria-label="Ruta"><ol class="breadcrumb small mb-2">
+  <li class="breadcrumb-item"><a href="{% url 'auditoria_lista' %}">Auditorías</a></li>
+  {% if auditoria %}<li class="breadcrumb-item"><a href="{% url 'auditoria_detalle' auditoria.id %}">{{ auditoria.organizacion }}</a></li>{% endif %}
+  <li class="breadcrumb-item active" aria-current="page">{{ titulo }}</li>
+</ol></nav>
+<h1 class="titulo">{{ titulo }}</h1>
+<p class="subtitulo mb-4">Datos generales de la auditoría. Los campos con <span style="color:#A8321F">*</span> son obligatorios.</p>
+<div class="d-flex flex-wrap gap-4 align-items-start">
+  <div class="tarjeta tarjeta-cuerpo p-4" style="flex: 999 1 520px; max-width: 860px">
+    {% if form.non_field_errors %}<div class="alert alert-danger"><img src="{% static 'drakon/avatar/error.png' %}" alt=""><div>{{ form.non_field_errors|join:" " }}</div></div>{% endif %}
+    <form method="post" novalidate>{% csrf_token %}
+      <div class="row g-3">
+        {% for campo in form %}
+        <div class="{% if campo.name == 'fecha_inicio' or campo.name == 'fecha_fin' %}col-md-6{% else %}col-12{% endif %}">
+          <label for="{{ campo.id_for_label }}" class="form-label {% if campo.field.required %}requerido{% endif %}">{{ campo.label }}</label>
+          {{ campo }}
+          {% for e in campo.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <button class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Guardar{% if not auditoria %} como borrador{% endif %}</button>
+        <a class="btn btn-outline-secondary" href="{% if auditoria %}{% url 'auditoria_detalle' auditoria.id %}{% else %}{% url 'auditoria_lista' %}{% endif %}">Cancelar</a>
+      </div>
+    </form>
+  </div>
+  <aside class="ayuda-drakon" style="flex: 1 1 300px; max-width: 360px">
+    <img src="{% static 'drakon/avatar/ayuda.png' %}" alt="">
+    <div class="small text-muted"><b class="text-body">Consejo:</b> el alcance define qué controles serán pertinentes. Después elegirás entre 10 y 15 controles de ISO/IEC 27002:2022.</div>
+  </aside>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  // Marca en rojo los campos con error (el mensaje ya aparece junto al campo)
+  document.querySelectorAll('form .form-control').forEach(function (el) {
+    if (el.closest('div').querySelector('.invalid-feedback')) { el.classList.add('is-invalid'); el.setAttribute('aria-invalid', 'true'); }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% load static %}<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Inicio{% endblock %} · DRAKON</title>
+  <link rel="icon" type="image/png" href="{% static 'drakon/avatar/logo_icono.png' %}">
+  <link href="{% static 'vendor/bootstrap/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}" rel="stylesheet">
+  <link href="{% static 'drakon/drakon.css' %}" rel="stylesheet">
+</head>
+<body>
+{% if user.is_authenticated %}
+<header class="topbar d-lg-none sticky-top">
+  <div class="d-flex justify-content-between align-items-center px-3 py-2">
+    <a href="{% url 'dashboard' %}"><img src="{% static 'drakon/avatar/logo_completo.png' %}" alt="DRAKON, ir al inicio" style="height:32px"></a>
+    <button class="btn btn-outline-secondary px-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#menu" aria-controls="menu" aria-label="Abrir menú">
+      <i class="bi bi-list fs-4" aria-hidden="true"></i>
+    </button>
+  </div>
+</header>
+<div class="app">
+  <aside class="offcanvas-lg offcanvas-start sidebar" tabindex="-1" id="menu" aria-label="Menú principal">
+    <div class="offcanvas-header d-lg-none">
+      <img src="{% static 'drakon/avatar/logo_completo.png' %}" alt="DRAKON" style="height:30px">
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#menu" aria-label="Cerrar menú"></button>
+    </div>
+    <div class="d-flex flex-column h-100 p-3 pt-lg-4">
+      <a href="{% url 'dashboard' %}" class="d-none d-lg-block mb-4 ms-2"><img class="logo" src="{% static 'drakon/avatar/logo_completo.png' %}" alt="DRAKON, ir al inicio"></a>
+      {% with n=request.resolver_match.url_name %}
+      <nav class="nav flex-column gap-1" aria-label="Principal">
+        <a class="nav-link {% if n == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}" {% if n == 'dashboard' %}aria-current="page"{% endif %}><i class="bi bi-grid-1x2" aria-hidden="true"></i> Inicio</a>
+        <a class="nav-link {% if 'auditoria' in n or n == 'controles_seleccion' %}active{% endif %}" href="{% url 'auditoria_lista' %}"><i class="bi bi-clipboard-check" aria-hidden="true"></i> Auditorías</a>
+        <a class="nav-link {% if n == 'catalogo' %}active{% endif %}" href="{% url 'catalogo' %}"><i class="bi bi-journal-text" aria-hidden="true"></i> Catálogo ISO 27002</a>
+        {% if user.is_staff %}<a class="nav-link" href="{% url 'admin:index' %}"><i class="bi bi-gear" aria-hidden="true"></i> Administración</a>{% endif %}
+      </nav>
+      {% endwith %}
+      <div class="mt-auto pt-4">
+        <div class="usuario">
+          <div class="avatar-iniciales" aria-hidden="true">{{ user.first_name|default:user.username|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}</div>
+          <div class="small lh-sm"><b>{{ user.get_full_name|default:user.username }}</b><br><span class="text-muted">{% if user.is_superuser %}Administrador{% else %}Auditor{% endif %}</span></div>
+        </div>
+        <form method="post" action="{% url 'logout' %}" class="mt-2">{% csrf_token %}
+          <button class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Salir</button>
+        </form>
+      </div>
+    </div>
+  </aside>
+  <main class="contenido" id="contenido">
+    {% for m in messages %}
+    <div class="alert alert-{% if m.tags == 'error' %}danger{% else %}{{ m.tags }}{% endif %} alert-dismissible fade show" role="alert">
+      <img src="{% if m.tags == 'error' %}{% static 'drakon/avatar/error.png' %}{% elif m.tags == 'success' %}{% static 'drakon/avatar/listo.png' %}{% else %}{% static 'drakon/avatar/ayuda.png' %}{% endif %}" alt="">
+      <div>{{ m }}</div>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar aviso"></button>
+    </div>
+    {% endfor %}
+    {% block contenido %}{% endblock %}
+  </main>
+</div>
+{% else %}
+  {% block publico %}{% endblock %}
+{% endif %}
+<script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

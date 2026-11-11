@@ -1,0 +1,162 @@
+{% extends "drakon/base.html" %}{% load static drakon_tags %}
+{% block titulo %}Evaluar {{ ev.codigo_control }}{% endblock %}
+{% block contenido %}
+<nav aria-label="Ruta"><ol class="breadcrumb small mb-2">
+  <li class="breadcrumb-item"><a href="{% url 'auditoria_lista' %}">Auditorías</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'auditoria_detalle' a.id %}">{{ a.organizacion }}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Evaluación</li>
+</ol></nav>
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+  <h1 class="titulo">Evaluación de controles</h1>
+  <div class="d-flex align-items-center gap-3 small">
+    <b>{{ evaluados }} de {{ total }} evaluados</b>
+    <div class="barra gruesa m-0" style="width:220px" role="progressbar" aria-valuenow="{{ evaluados }}" aria-valuemin="0" aria-valuemax="{{ total }}" aria-label="Avance de la evaluación"><span style="width:{% widthratio evaluados total 100 %}%"></span></div>
+  </div>
+</div>
+{% if not editable %}
+<div class="alert alert-info"><img src="{% static 'drakon/avatar/ayuda.png' %}" alt=""><div>La auditoría está «{{ a.estado.etiqueta }}»: la evaluación y las evidencias son de solo lectura.{% if a.estado.value == "EN_REVISION" %} Para corregir algo, devuélvela a ejecución desde el detalle.{% endif %}</div></div>
+{% endif %}
+
+<div class="d-flex flex-wrap gap-4 align-items-start">
+  <!-- Lista de controles -->
+  <nav class="tarjeta p-2 order-1 order-lg-0" style="flex: 1 1 280px; max-width: 340px" aria-label="Controles de la auditoría">
+    <div class="px-2 py-2 small fw-bold text-muted">Controles seleccionados</div>
+    {% for e in a.evaluaciones %}
+    <a href="{% url 'evaluar_control' a.id e.id_control %}" class="d-flex justify-content-between align-items-center gap-2 px-2 py-2 rounded-3 text-decoration-none {% if e.id_control == ev.id_control %}bg-durazno fw-bold{% endif %}" style="color: var(--carbon)" {% if e.id_control == ev.id_control %}aria-current="true"{% endif %}>
+      <span class="small"><b>{{ e.codigo_control }}</b> {{ e.nombre_control|truncatechars:30 }}</span>
+      {% if e.id_control in falta_evidencia %}<span class="chip chip-alta" title="Falta evidencia">Sin evidencia</span>
+      {% elif e.evaluada %}<span class="chip {{ e.estado|chip }}" title="{{ e.estado.etiqueta }}"><span class="visually-hidden">{{ e.estado.etiqueta }}</span></span>
+      {% else %}<span class="small text-muted text-nowrap">Sin evaluar</span>{% endif %}
+    </a>
+    {% endfor %}
+  </nav>
+
+  <!-- Panel de evaluación -->
+  <section style="flex: 999 1 520px; min-width: 0" class="d-flex flex-column gap-3 order-0">
+    <div class="tarjeta tarjeta-cuerpo p-4 d-flex flex-column gap-4">
+      <div>
+        <div class="small fw-bold text-ember">{{ ev.codigo_control }} · {{ control.categoria.etiqueta }} · ISO/IEC 27002:2022 · control {{ posicion }} de {{ total }}</div>
+        <h2 class="mt-1 mb-2" style="font-size:1.4rem">{{ control.nombre }}</h2>
+        <p class="mb-0 text-muted" style="line-height:1.6">{{ control.descripcion }}</p>
+      </div>
+
+      <form method="post" novalidate id="form-evaluacion" class="d-flex flex-column gap-4">{% csrf_token %}
+        {% if form.non_field_errors %}<div class="alert alert-danger mb-0"><img src="{% static 'drakon/avatar/error.png' %}" alt=""><div>{{ form.non_field_errors|join:" " }}</div></div>{% endif %}
+        <fieldset {% if not editable %}disabled{% endif %}>
+          <legend class="form-label requerido mb-2">Estado de implementación</legend>
+          <div class="estados">
+            {% for valor, etiqueta in form.fields.estado.choices %}
+            <input class="btn-check" type="radio" name="estado" id="estado-{{ valor }}" value="{{ valor }}" {% if form.estado.value == valor %}checked{% endif %}>
+            <label class="estado estado-{{ valor|lower }}" for="estado-{{ valor }}">{{ etiqueta }}</label>
+            {% endfor %}
+          </div>
+          {% for e in form.estado.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        </fieldset>
+
+        <div id="bloque-na" {% if form.estado.value != "NO_APLICABLE" %}hidden{% endif %}>
+          <label for="{{ form.justificacion_na.id_for_label }}" class="form-label requerido">{{ form.justificacion_na.label }}</label>
+          {{ form.justificacion_na }}
+          {% for e in form.justificacion_na.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+          <div class="form-text">Los controles «No aplicable» se excluyen del denominador del indicador.</div>
+        </div>
+
+        <div>
+          <label for="{{ form.observacion.id_for_label }}" class="form-label requerido">{{ form.observacion.label }}</label>
+          {{ form.observacion }}
+          {% for e in form.observacion.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        </div>
+      </form>
+
+      <!-- Evidencias -->
+      <div>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+          <span class="form-label mb-0">Evidencias ({{ ev.evidencias|length }})</span>
+          {% if editable %}<button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#nueva-evidencia" aria-expanded="{% if abrir_evidencia %}true{% else %}false{% endif %}" aria-controls="nueva-evidencia"><i class="bi bi-paperclip" aria-hidden="true"></i> Adjuntar evidencia</button>{% endif %}
+        </div>
+        {% if ev.estado.exige_evidencia and not ev.evidencias %}
+        <div class="alert alert-warning py-2"><img src="{% static 'drakon/avatar/ayuda.png' %}" alt="" style="height:36px"><div class="small">«{{ ev.estado.etiqueta }}» exige al menos una evidencia antes de pasar a revisión.</div></div>
+        {% endif %}
+        <ul class="list-unstyled d-flex flex-column gap-2 mb-0">
+          {% for x in ev.evidencias %}
+          <li class="d-flex flex-wrap align-items-center gap-3 p-3 rounded-4" style="background:var(--blanco)">
+            <span class="d-flex align-items-center justify-content-center rounded-3 bg-durazno" style="width:42px;height:42px"><i class="bi {% if x.archivo_id %}bi-file-earmark-text{% else %}bi-link-45deg{% endif %} text-ember fs-5" aria-hidden="true"></i></span>
+            <div class="flex-grow-1 small" style="min-width:200px">
+              <b>{{ x.codigo }} · {{ x.descripcion }}</b><br>
+              <span class="text-muted">{{ x.fuente }} · {{ x.fecha|date:"j M Y" }}{% if x.archivo_nombre %} · <a href="{% url 'evidencia_archivo' a.id x.codigo %}" target="_blank" rel="noopener">{{ x.archivo_nombre }}</a>{% endif %}{% if x.referencia %} · {{ x.referencia }}{% endif %}</span>
+            </div>
+            {% if x.es_simulada %}<span class="chip chip-borrador">Simulada</span>{% endif %}
+            {% if editable %}
+            <div class="d-flex gap-1">
+              <a class="btn btn-outline-secondary btn-sm" href="{% url 'evidencia_editar' a.id x.codigo %}" aria-label="Editar evidencia {{ x.codigo }}"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+              <a class="btn btn-outline-secondary btn-sm" href="{% url 'evidencia_eliminar' a.id x.codigo %}" aria-label="Eliminar evidencia {{ x.codigo }}"><i class="bi bi-trash" aria-hidden="true"></i></a>
+            </div>
+            {% endif %}
+          </li>
+          {% empty %}<li class="small text-muted">Aún no hay evidencias para este control.</li>{% endfor %}
+        </ul>
+
+        {% if editable %}
+        <div class="collapse {% if abrir_evidencia %}show{% endif %} mt-3" id="nueva-evidencia">
+          <form method="post" enctype="multipart/form-data" action="{% url 'evidencia_agregar' a.id ev.id_control %}" class="p-3 rounded-4" style="border:1.5px dashed var(--naranja)" novalidate>{% csrf_token %}
+            {% if form_evidencia.non_field_errors %}<div class="alert alert-danger"><img src="{% static 'drakon/avatar/error.png' %}" alt=""><div>{{ form_evidencia.non_field_errors|join:" " }}</div></div>{% endif %}
+            <div class="row g-3">
+              {% for campo in form_evidencia %}{% if campo.name != "es_simulada" %}
+              <div class="{% if campo.name == 'descripcion' %}col-12{% else %}col-md-6{% endif %}">
+                <label for="{{ campo.id_for_label }}" class="form-label {% if campo.field.required %}requerido{% endif %}">{{ campo.label }}</label>
+                {{ campo }}
+                {% if campo.help_text %}<div class="form-text">{{ campo.help_text }}</div>{% endif %}
+                {% for e in campo.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+              </div>
+              {% endif %}{% endfor %}
+              <div class="col-12 form-check ms-2">{{ form_evidencia.es_simulada }} <label class="form-check-label" for="{{ form_evidencia.es_simulada.id_for_label }}">{{ form_evidencia.es_simulada.label }}</label></div>
+            </div>
+            <button class="btn btn-primary mt-3"><i class="bi bi-upload" aria-hidden="true"></i> Guardar evidencia</button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if hallazgos_control %}
+      <div class="small"><span class="form-label">Hallazgos de este control:</span>
+        {% for h in hallazgos_control %}<a class="chip {{ h.severidad|chip }} text-decoration-none ms-1" href="{% url 'hallazgos' a.id %}#{{ h.codigo }}">{{ h.codigo }} · {{ h.severidad.etiqueta }}</a>{% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Acciones -->
+      <div class="d-flex flex-wrap justify-content-between gap-2 pt-3" style="border-top:1px solid var(--borde)">
+        {% if ev.evaluada and ev.estado.value != "NO_APLICABLE" and a.editable and a.estado.value != "BORRADOR" %}
+        <a class="btn btn-outline-secondary" href="{% url 'hallazgo_nuevo' a.id %}?control={{ ev.id_control }}"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> Registrar hallazgo</a>
+        {% else %}<span></span>{% endif %}
+        <div class="d-flex flex-wrap gap-2">
+          {% if anterior %}<a class="btn btn-outline-secondary" href="{% url 'evaluar_control' a.id anterior %}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Anterior</a>{% endif %}
+          {% if editable %}
+          <button class="btn btn-outline-primary" form="form-evaluacion" name="ir" value="quedarse">Guardar</button>
+          <button class="btn btn-primary" form="form-evaluacion" name="ir" value="siguiente">Guardar y seguir <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+          {% elif siguiente %}
+          <a class="btn btn-outline-secondary" href="{% url 'evaluar_control' a.id siguiente %}">Siguiente <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="ayuda-drakon">
+      <img src="{% static 'drakon/avatar/ayuda.png' %}" alt="">
+      <div class="small text-muted" style="line-height:1.5"><b class="text-body">Recuerda:</b> «Implementado» y «Parcial» exigen al menos una evidencia; «No aplicable» exige justificación. La evidencia debe sustentar el estado, no solo describirlo.</div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  // Muestra la justificación solo cuando el estado es «No aplicable»
+  var bloque = document.getElementById('bloque-na');
+  document.querySelectorAll('input[name="estado"]').forEach(function (r) {
+    r.addEventListener('change', function () { bloque.hidden = !(r.checked && r.value === 'NO_APLICABLE'); });
+  });
+  document.querySelectorAll('.invalid-feedback').forEach(function (f) {
+    var c = f.parentElement.querySelector('.form-control, .form-select'); if (c) { c.classList.add('is-invalid'); c.setAttribute('aria-invalid', 'true'); }
+  });
+})();
+</script>
+{% endblock %}

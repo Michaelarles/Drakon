@@ -1,0 +1,153 @@
+{% extends "drakon/base.html" %}{% load static drakon_tags %}
+{% block titulo %}{{ a.organizacion }}{% endblock %}
+{% block contenido %}
+<nav aria-label="Ruta"><ol class="breadcrumb small mb-2">
+  <li class="breadcrumb-item"><a href="{% url 'auditoria_lista' %}">Auditorías</a></li>
+  <li class="breadcrumb-item active" aria-current="page">{{ a.organizacion }}</li>
+</ol></nav>
+
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <h1 class="titulo">{{ a.organizacion }}</h1>
+    <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+      <span class="chip {{ a.estado|chip }}">{{ a.estado.etiqueta }}</span>
+      <span class="subtitulo">{{ a.fecha_inicio|date:"j M" }} – {{ a.fecha_fin|date:"j M Y" }}</span>
+    </div>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    {% if a.estado.value == "BORRADOR" or a.estado.value == "EN_EJECUCION" %}
+      <a class="btn btn-outline-secondary" href="{% url 'auditoria_editar' a.id %}"><i class="bi bi-pencil" aria-hidden="true"></i> Editar datos</a>
+    {% endif %}
+    {% if a.editable %}
+      <a class="btn btn-outline-secondary" href="{% url 'auditoria_eliminar' a.id %}" aria-label="Eliminar auditoría"><i class="bi bi-trash" aria-hidden="true"></i></a>
+    {% endif %}
+    {% if a.estado.value == "BORRADOR" %}
+      <a class="btn btn-outline-primary" href="{% url 'controles_seleccion' a.id %}"><i class="bi bi-list-check" aria-hidden="true"></i> Seleccionar controles</a>
+    {% else %}
+      <a class="btn btn-outline-secondary" href="{% url 'hallazgos' a.id %}"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> Hallazgos ({{ a.hallazgos|length }})</a>
+      <a class="btn {% if a.estado.value == 'EN_EJECUCION' %}btn-primary{% else %}btn-outline-secondary{% endif %}" href="{% url 'evaluar_inicio' a.id %}"><i class="bi bi-ui-checks" aria-hidden="true"></i> {% if a.estado.value == 'EN_EJECUCION' %}Evaluar controles{% else %}Ver evaluación{% endif %}</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Pasos -->
+<section class="tarjeta tarjeta-cuerpo mb-4" aria-label="Etapas de la auditoría">
+  {% with e=a.estado.value %}
+  <div class="pasos">
+    <div class="paso {% if e == 'BORRADOR' %}actual{% else %}hecho{% endif %}"><div class="circulo">{% if e == 'BORRADOR' %}1{% else %}<i class="bi bi-check-lg" aria-hidden="true"></i>{% endif %}</div><b>Borrador</b><span>Datos y controles</span></div>
+    <div class="paso {% if e == 'EN_EJECUCION' %}actual{% elif e == 'EN_REVISION' or e == 'CERRADA' %}hecho{% endif %}"><div class="circulo">{% if e == 'EN_REVISION' or e == 'CERRADA' %}<i class="bi bi-check-lg" aria-hidden="true"></i>{% else %}2{% endif %}</div><b>Ejecución</b><span>Evaluación y evidencias</span></div>
+    <div class="paso {% if e == 'EN_REVISION' %}actual{% elif e == 'CERRADA' %}hecho{% endif %}"><div class="circulo">{% if e == 'CERRADA' %}<i class="bi bi-check-lg" aria-hidden="true"></i>{% else %}3{% endif %}</div><b>Revisión</b><span>Hallazgos y recomendaciones</span></div>
+    <div class="paso {% if e == 'CERRADA' %}hecho{% endif %}"><div class="circulo">{% if e == 'CERRADA' %}<i class="bi bi-check-lg" aria-hidden="true"></i>{% else %}4{% endif %}</div><b>Cerrada</b><span>Informe y solo lectura</span></div>
+  </div>
+  {% endwith %}
+</section>
+
+<div class="row g-4">
+  <div class="col-lg-8 d-flex flex-column gap-4">
+    <section class="tarjeta tarjeta-cuerpo">
+      <h2 class="mb-3">Datos generales</h2>
+      <dl class="row mb-0 small">
+        <dt class="col-sm-3">Objetivo</dt><dd class="col-sm-9">{{ a.objetivo|linebreaksbr }}</dd>
+        <dt class="col-sm-3">Alcance</dt><dd class="col-sm-9">{{ a.alcance|linebreaksbr }}</dd>
+        <dt class="col-sm-3">Referentes</dt><dd class="col-sm-9 mb-0">{{ a.referentes }}</dd>
+      </dl>
+    </section>
+
+    <section class="tarjeta overflow-hidden">
+      <div class="tarjeta-cuerpo pb-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <h2>Controles seleccionados ({{ a.evaluaciones|length }})</h2>
+        {% if a.estado.value == "BORRADOR" %}<span class="small fw-bold {% if a.evaluaciones|length >= min and a.evaluaciones|length <= max %}text-success{% else %}text-danger{% endif %}">Rango permitido: {{ min }} a {{ max }}</span>{% endif %}
+      </div>
+      {% if a.evaluaciones %}
+      <div class="table-responsive"><table class="tabla">
+        <thead><tr><th>Código</th><th>Control</th><th>Estado</th><th>Evidencias</th></tr></thead>
+        <tbody>{% for ev in a.evaluaciones %}
+          <tr><td class="fw-bold">{% if a.estado.value != "BORRADOR" %}<a class="text-reset" href="{% url 'evaluar_control' a.id ev.id_control %}">{{ ev.codigo_control }}</a>{% else %}{{ ev.codigo_control }}{% endif %}</td><td>{{ ev.nombre_control }}</td>
+            <td><span class="chip {{ ev.estado|chip }}">{{ ev.estado.etiqueta }}</span></td>
+            <td>{{ ev.evidencias|length }}</td></tr>
+        {% endfor %}</tbody>
+      </table></div>
+      {% else %}
+      <div class="momento pt-2"><img src="{% static 'drakon/avatar/vacio.png' %}" alt="" style="height:90px"><p class="text-muted mb-2">Aún no se han seleccionado controles.</p>
+        <a class="btn btn-primary" href="{% url 'controles_seleccion' a.id %}">Seleccionar controles</a></div>
+      {% endif %}
+    </section>
+
+    {% if a.hallazgos %}
+    <section class="tarjeta overflow-hidden">
+      <div class="tarjeta-cuerpo pb-3"><h2>Hallazgos ({{ a.hallazgos|length }})</h2></div>
+      <div class="table-responsive"><table class="tabla">
+        <thead><tr><th>Código</th><th>Condición</th><th>Severidad</th><th>Recomendaciones</th></tr></thead>
+        <tbody>{% for h in a.hallazgos %}
+          <tr><td class="fw-bold"><a class="text-reset" href="{% url 'hallazgos' a.id %}#{{ h.codigo }}">{{ h.codigo }}</a></td><td>{{ h.condicion|truncatewords:16 }}</td>
+            <td><span class="chip {{ h.severidad|chip }}">{{ h.severidad.etiqueta }}</span></td>
+            <td>{{ h.recomendaciones|length }}</td></tr>
+        {% endfor %}</tbody>
+      </table></div>
+    </section>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-4 d-flex flex-column gap-4">
+    <section class="tarjeta tarjeta-cuerpo kpi">
+      <h2 class="mb-3">Indicadores</h2>
+      <div class="etiqueta">Cumplimiento base</div><div class="valor">{{ ind.cumplimiento_base|pct }}</div>
+      <div class="barra" aria-hidden="true"><span style="width:{{ ind.cumplimiento_base|default:0|ancho }}%"></span></div>
+      <div class="etiqueta mt-3">Índice ponderado</div><div class="valor">{{ ind.indice_ponderado|pct }}</div>
+      <div class="barra amber" aria-hidden="true"><span style="width:{{ ind.indice_ponderado|default:0|ancho }}%"></span></div>
+      <div class="d-flex justify-content-between small mt-3"><span>Aplicables</span><b>{{ ind.aplicables }}</b></div>
+      <div class="d-flex justify-content-between small"><span>Hallazgos</span><b>{{ ind.total_hallazgos }}</b></div>
+    </section>
+
+    {% if a.editable %}
+    <section class="tarjeta tarjeta-cuerpo">
+      <h2 class="mb-3">Siguiente paso</h2>
+      <form method="post" action="{% url 'auditoria_estado' a.id %}" class="d-flex flex-column gap-2">{% csrf_token %}
+        {% if a.estado.value == "BORRADOR" %}
+          <p class="small text-muted mb-1">Selecciona entre {{ min }} y {{ max }} controles para iniciar la evaluación.</p>
+          <button name="accion" value="iniciar" class="btn btn-primary w-100"><i class="bi bi-play-fill" aria-hidden="true"></i> Iniciar ejecución</button>
+        {% elif a.estado.value == "EN_EJECUCION" %}
+          {% if problemas_revision %}
+          <div class="ayuda-drakon p-2 mb-1"><img src="{% static 'drakon/avatar/error.png' %}" alt="" style="height:48px">
+            <ul class="small mb-0 ps-3">{% for p in problemas_revision|slice:":4" %}<li>{{ p }}</li>{% endfor %}{% if problemas_revision|length > 4 %}<li>… y {{ problemas_revision|length|add:"-4" }} más.</li>{% endif %}</ul></div>
+          {% endif %}
+          <button name="accion" value="revision" class="btn btn-primary w-100"><i class="bi bi-send" aria-hidden="true"></i> Enviar a revisión</button>
+        {% elif a.estado.value == "EN_REVISION" %}
+          {% if problemas_cierre %}
+          <div class="ayuda-drakon p-2 mb-1"><img src="{% static 'drakon/avatar/error.png' %}" alt="" style="height:48px">
+            <ul class="small mb-0 ps-3">{% for p in problemas_cierre %}<li>{{ p }}</li>{% endfor %}</ul></div>
+          {% endif %}
+          <button name="accion" value="cerrar" class="btn btn-primary w-100"><i class="bi bi-lock" aria-hidden="true"></i> Cerrar auditoría</button>
+          <button name="accion" value="devolver" class="btn btn-outline-secondary w-100"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Devolver a ejecución</button>
+        {% endif %}
+      </form>
+    </section>
+    {% else %}
+    <section class="tarjeta momento py-4">
+      <img src="{% static 'drakon/avatar/celebracion.png' %}" alt="" style="height:100px">
+      <h2>Auditoría cerrada</h2>
+      <p class="text-muted small mb-0">Queda en solo lectura. Descarga el informe consolidado.</p>
+    </section>
+    {% endif %}
+
+    {% if a.estado.value != "BORRADOR" %}
+    <section class="tarjeta tarjeta-cuerpo">
+      <h2 class="mb-3">Informe</h2>
+      {% if informes %}
+      <ul class="list-unstyled d-flex flex-column gap-2 mb-3">
+        {% for inf in informes %}
+        <li class="d-flex justify-content-between align-items-center small">
+          <span><b>Versión {{ inf.version }}</b>{% if inf.contenido.preliminar %} · preliminar{% endif %}<br><span class="text-muted">{{ inf.fecha_generacion|date:"j M Y, H:i" }}</span></span>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'informe_pdf' inf.id %}" target="_blank" rel="noopener"><i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> PDF</a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}<p class="small text-muted">Aún no has generado el informe.</p>{% endif %}
+      <form method="post" action="{% url 'informe_generar' a.id %}">{% csrf_token %}
+        <button class="btn {% if a.editable %}btn-outline-primary{% else %}btn-primary{% endif %} w-100"><i class="bi bi-file-earmark-text" aria-hidden="true"></i> Generar {% if a.editable %}informe preliminar{% else %}informe{% endif %}</button>
+      </form>
+    </section>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

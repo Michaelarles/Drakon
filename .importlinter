@@ -1,0 +1,23 @@
+[importlinter]
+root_packages =
+    drakon
+    django
+    xhtml2pdf
+
+[importlinter:contract:capas]
+name = Arquitectura hexagonal: infraestructura -> aplicacion -> dominio
+type = layers
+layers =
+    drakon.infraestructura
+    drakon.aplicacion
+    drakon.dominio
+
+[importlinter:contract:nucleo-sin-frameworks]
+name = El dominio y la aplicacion no dependen de Django ni de librerias externas
+type = forbidden
+source_modules =
+    drakon.dominio
+    drakon.aplicacion
+forbidden_modules =
+    django
+    xhtml2pdf

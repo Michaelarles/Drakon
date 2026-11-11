@@ -1,0 +1,67 @@
+{% extends "drakon/base.html" %}{% load static %}
+{% block titulo %}Seleccionar controles{% endblock %}
+{% block contenido %}
+<nav aria-label="Ruta"><ol class="breadcrumb small mb-2">
+  <li class="breadcrumb-item"><a href="{% url 'auditoria_lista' %}">Auditorías</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'auditoria_detalle' a.id %}">{{ a.organizacion }}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Controles</li>
+</ol></nav>
+<h1 class="titulo">Selección de controles</h1>
+<p class="subtitulo mb-4">Elige entre {{ min }} y {{ max }} controles pertinentes al alcance de la auditoría.</p>
+{% if bloqueado %}<div class="alert alert-warning"><img src="{% static 'drakon/avatar/ayuda.png' %}" alt=""><div>La selección solo puede modificarse con la auditoría en «Borrador».</div></div>{% endif %}
+
+<form method="post">{% csrf_token %}
+  <div class="tarjeta tarjeta-cuerpo mb-3 barra-fija">
+    <div class="row g-2 align-items-center">
+      <div class="col-md-5"><label for="buscar" class="visually-hidden">Buscar control</label><input id="buscar" class="form-control" placeholder="Buscar control…"></div>
+      <div class="col-md-3"><label for="filtro" class="visually-hidden">Categoría</label><select id="filtro" class="form-select">
+        <option value="">Todas las categorías</option>
+        {% for valor, etiqueta in categorias %}<option value="{{ valor }}">{{ etiqueta }}</option>{% endfor %}
+      </select></div>
+      <div class="col-6 col-md-2 text-md-center"><span id="contador" class="contador" aria-live="polite">0 / {{ max }}</span></div>
+      <div class="col-6 col-md-2"><button class="btn btn-primary w-100" {% if bloqueado %}disabled{% endif %}><i class="bi bi-check-lg" aria-hidden="true"></i> Guardar</button></div>
+    </div>
+    <div id="aviso" class="small fw-semibold mt-2"></div>
+  </div>
+  <div class="tarjeta overflow-hidden">
+    <div class="table-responsive"><table class="tabla">
+      <thead><tr><th style="width:100px">En auditoría</th><th>Código</th><th>Control</th><th>Categoría</th></tr></thead>
+      <tbody>{% for c in controles %}
+        <tr data-cat="{{ c.categoria.value }}" data-texto="{{ c.codigo }} {{ c.nombre|lower }} {{ c.descripcion|lower }}" class="{% if c.id in seleccionados %}seleccionado{% endif %}">
+          <td><div class="form-check form-switch m-0"><input class="form-check-input sel" type="checkbox" role="switch" name="controles" value="{{ c.id }}" id="c{{ c.id }}" {% if c.id in seleccionados %}checked{% endif %} {% if bloqueado %}disabled{% endif %} style="width:2.6em;height:1.4em"></div></td>
+          <td class="fw-bold"><label for="c{{ c.id }}">{{ c.codigo }}</label></td>
+          <td><label for="c{{ c.id }}" class="fw-semibold">{{ c.nombre }}</label><div class="small text-muted d-none d-md-block">{{ c.descripcion|truncatewords:22 }}</div></td>
+          <td class="text-nowrap small">{{ c.categoria.etiqueta }}</td>
+        </tr>{% endfor %}</tbody>
+    </table></div>
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  const MIN = {{ min }}, MAX = {{ max }};
+  const cont = document.getElementById('contador'), aviso = document.getElementById('aviso');
+  function actualizar() {
+    const n = document.querySelectorAll('.sel:checked').length;
+    cont.textContent = n + ' / ' + MAX;
+    const ok = n >= MIN && n <= MAX;
+    cont.className = 'contador ' + (ok ? 'ok' : 'fuera');
+    aviso.textContent = ok ? 'Selección dentro del rango permitido.' :
+      (n < MIN ? 'Faltan ' + (MIN - n) + ' controles para el mínimo de ' + MIN + '.' : 'Sobran ' + (n - MAX) + ' controles: el máximo es ' + MAX + '.');
+    aviso.style.color = ok ? '#1F6345' : '#A8321F';
+    document.querySelectorAll('.sel').forEach(function (s) { s.closest('tr').classList.toggle('seleccionado', s.checked); });
+  }
+  function filtrar() {
+    const t = document.getElementById('buscar').value.toLowerCase(), c = document.getElementById('filtro').value;
+    document.querySelectorAll('tbody tr').forEach(function (tr) {
+      tr.style.display = (!c || tr.dataset.cat === c) && tr.dataset.texto.includes(t) ? '' : 'none';
+    });
+  }
+  document.querySelectorAll('.sel').forEach(function (s) { s.addEventListener('change', actualizar); });
+  document.getElementById('buscar').addEventListener('input', filtrar);
+  document.getElementById('filtro').addEventListener('change', filtrar);
+  actualizar();
+})();
+</script>
+{% endblock %}

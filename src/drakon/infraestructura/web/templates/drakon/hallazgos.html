@@ -1,0 +1,82 @@
+{% extends "drakon/base.html" %}{% load static drakon_tags %}
+{% block titulo %}Hallazgos · {{ a.organizacion }}{% endblock %}
+{% block contenido %}
+<nav aria-label="Ruta"><ol class="breadcrumb small mb-2">
+  <li class="breadcrumb-item"><a href="{% url 'auditoria_lista' %}">Auditorías</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'auditoria_detalle' a.id %}">{{ a.organizacion }}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Hallazgos</li>
+</ol></nav>
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+  <div><h1 class="titulo">Hallazgos y recomendaciones</h1><div class="subtitulo">{{ filas|length }} hallazgo{{ filas|length|pluralize }} documentado{{ filas|length|pluralize }}</div></div>
+  {% if editable %}<a class="btn btn-primary" href="{% url 'hallazgo_nuevo' a.id %}"><i class="bi bi-plus-lg" aria-hidden="true"></i> Nuevo hallazgo</a>{% endif %}
+</div>
+
+{% if a.estado.value == "EN_REVISION" and problemas_cierre %}
+<div class="alert alert-warning"><img src="{% static 'drakon/avatar/error.png' %}" alt=""><div><b>Para cerrar la auditoría falta:</b> {{ problemas_cierre|join:" " }}</div></div>
+{% elif a.estado.value == "EN_REVISION" %}
+<div class="alert alert-success"><img src="{% static 'drakon/avatar/listo.png' %}" alt=""><div>Todos los hallazgos tienen recomendación. Ya puedes <a href="{% url 'auditoria_detalle' a.id %}">cerrar la auditoría</a>.</div></div>
+{% endif %}
+
+{% if filas %}
+<div class="d-flex flex-column gap-3">
+  {% for h, ctrl in filas %}
+  <article class="tarjeta" id="{{ h.codigo }}">
+    <div class="tarjeta-cuerpo">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+        <h2 style="font-size:1.1rem">{{ h.codigo }} · Control {{ ctrl.codigo }} {{ ctrl.nombre }}</h2>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <span class="chip {{ h.severidad|chip }}">Severidad {{ h.severidad.etiqueta|lower }}</span>
+          {% if editable %}
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'hallazgo_editar' a.id h.codigo %}"><i class="bi bi-pencil" aria-hidden="true"></i> Editar</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'hallazgo_eliminar' a.id h.codigo %}" aria-label="Eliminar hallazgo {{ h.codigo }}"><i class="bi bi-trash" aria-hidden="true"></i></a>
+          {% endif %}
+        </div>
+      </div>
+      <dl class="row hallazgo-campos mb-0">
+        <div class="col-md-6"><dt>Condición</dt><dd>{{ h.condicion|linebreaksbr }}</dd></div>
+        <div class="col-md-6"><dt>Criterio</dt><dd>{{ h.criterio|linebreaksbr }}</dd></div>
+        <div class="col-md-6"><dt>Causa</dt><dd>{{ h.causa|linebreaksbr }}</dd></div>
+        <div class="col-md-6"><dt>Efecto o riesgo</dt><dd>{{ h.efecto|linebreaksbr }}</dd></div>
+      </dl>
+      <div class="rounded-4 p-3 mt-1" style="background:var(--blanco)">
+        <div class="small fw-bold mb-2">Recomendaciones</div>
+        {% for r in h.recomendaciones %}
+        <div class="d-flex flex-wrap gap-2 align-items-start small {% if not forloop.last %}mb-2{% endif %}">
+          <b>{{ r.codigo }}</b><span class="flex-grow-1" style="min-width:200px">{{ r.descripcion }}</span>
+          <span class="chip {{ r.prioridad|chip }}">Prioridad {{ r.prioridad.etiqueta|lower }}</span><span class="chip chip-borrador">{{ r.plazo_dias }} días</span>
+          {% if editable %}
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'recomendacion_editar' a.id r.codigo %}" aria-label="Editar recomendación {{ r.codigo }}"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'recomendacion_eliminar' a.id r.codigo %}" aria-label="Eliminar recomendación {{ r.codigo }}"><i class="bi bi-trash" aria-hidden="true"></i></a>
+          {% endif %}
+        </div>
+        {% empty %}
+        <div class="small" style="color:#A8321F;font-weight:700"><i class="bi bi-exclamation-circle" aria-hidden="true"></i> Sin recomendación: es obligatoria para cerrar la auditoría.</div>
+        {% endfor %}
+        {% if editable %}
+        <button class="btn btn-outline-primary btn-sm mt-3" type="button" data-bs-toggle="collapse" data-bs-target="#rec-{{ h.codigo }}" aria-expanded="{% if not h.recomendaciones %}true{% else %}false{% endif %}" aria-controls="rec-{{ h.codigo }}"><i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar recomendación</button>
+        <div class="collapse {% if not h.recomendaciones %}show{% endif %}" id="rec-{{ h.codigo }}">
+          <form method="post" action="{% url 'recomendacion_agregar' a.id h.codigo %}" class="row g-2 mt-1">{% csrf_token %}
+            <div class="col-12"><label class="form-label requerido" for="r-{{ h.codigo }}">Recomendación</label>
+              <textarea class="form-control" id="r-{{ h.codigo }}" name="recomendacion" rows="2" required></textarea></div>
+            <div class="col-md-4"><label class="form-label requerido" for="p-{{ h.codigo }}">Prioridad</label>
+              <select class="form-select" id="p-{{ h.codigo }}" name="prioridad">{% for v, e in form_rec.fields.prioridad.choices %}<option value="{{ v }}">{{ e }}</option>{% endfor %}</select></div>
+            <div class="col-md-4"><label class="form-label requerido" for="d-{{ h.codigo }}">Plazo (días)</label>
+              <input class="form-control" type="number" min="1" max="730" id="d-{{ h.codigo }}" name="plazo_dias" required></div>
+            <div class="col-md-4 d-flex align-items-end"><button class="btn btn-primary w-100">Guardar</button></div>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<section class="tarjeta momento">
+  <img src="{% static 'drakon/avatar/vacio.png' %}" alt="">
+  <h2>Aún no hay hallazgos</h2>
+  <p class="text-muted mb-2">Documenta cada desviación con su condición, criterio, causa, efecto y severidad. Se requieren al menos 3 para cerrar.</p>
+  {% if editable %}<a class="btn btn-primary" href="{% url 'hallazgo_nuevo' a.id %}"><i class="bi bi-plus-lg" aria-hidden="true"></i> Registrar el primer hallazgo</a>{% endif %}
+</section>
+{% endif %}
+{% endblock %}

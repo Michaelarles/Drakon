@@ -1,0 +1,36 @@
+{% extends "drakon/base.html" %}{% load static %}
+{% block titulo %}Catálogo ISO/IEC 27002:2022{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+  <div><h1 class="titulo">Catálogo de controles</h1><div class="subtitulo">ISO/IEC 27002:2022 · {{ controles|length }} controles</div></div>
+  {% if es_admin %}<a class="btn btn-primary" href="{% url 'control_nuevo' %}"><i class="bi bi-plus-lg" aria-hidden="true"></i> Nuevo control</a>{% endif %}
+</div>
+<form class="tarjeta tarjeta-cuerpo mb-4" method="get" role="search">
+  <div class="row g-2">
+    <div class="col-md-6"><label for="q" class="visually-hidden">Buscar</label><input class="form-control" id="q" name="q" value="{{ q }}" placeholder="Buscar por código, nombre o criterio"></div>
+    <div class="col-md-4"><label for="categoria" class="visually-hidden">Categoría</label><select class="form-select" id="categoria" name="categoria">
+      <option value="">Todas las categorías</option>
+      {% for valor, etiqueta in categorias %}<option value="{{ valor }}" {% if categoria == valor %}selected{% endif %}>{{ etiqueta }}</option>{% endfor %}
+    </select></div>
+    <div class="col-md-2"><button class="btn btn-primary w-100"><i class="bi bi-search" aria-hidden="true"></i> Filtrar</button></div>
+  </div>
+</form>
+{% if controles %}
+<div class="tarjeta overflow-hidden">
+  <div class="table-responsive"><table class="tabla">
+    <thead><tr><th>Código</th><th>Control</th><th>Categoría</th><th>Criterio</th>{% if es_admin %}<th><span class="visually-hidden">Acciones</span></th>{% endif %}</tr></thead>
+    <tbody>{% for c in controles %}
+      <tr><td class="fw-bold">{{ c.codigo }}</td><td class="fw-semibold">{{ c.nombre }}</td><td class="text-nowrap">{{ c.categoria.etiqueta }}</td><td class="small text-muted">{{ c.descripcion }}</td>{% if es_admin %}<td class="text-nowrap"><a class="btn btn-outline-secondary btn-sm" href="{% url 'control_editar' c.id %}" aria-label="Editar {{ c.codigo }}"><i class="bi bi-pencil" aria-hidden="true"></i></a> <a class="btn btn-outline-secondary btn-sm" href="{% url 'control_eliminar' c.id %}" aria-label="Eliminar {{ c.codigo }}"><i class="bi bi-trash" aria-hidden="true"></i></a></td>{% endif %}</tr>
+    {% endfor %}</tbody>
+  </table></div>
+</div>
+{% else %}
+<section class="tarjeta momento">
+  <img src="{% static 'drakon/avatar/vacio.png' %}" alt="">
+  <h2>No encontramos controles</h2>
+  <p class="text-muted mb-2">Prueba con otra palabra o quita el filtro de categoría.</p>
+  <a class="btn btn-outline-secondary" href="{% url 'catalogo' %}">Ver todo el catálogo</a>
+</section>
+{% endif %}
+<p class="small text-muted mt-3">Los criterios deben validarse con el texto oficial de la norma.</p>
+{% endblock %}

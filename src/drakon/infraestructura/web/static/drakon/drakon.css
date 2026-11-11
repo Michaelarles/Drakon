@@ -1,0 +1,152 @@
+/* DRAKON · Diseño «Brasa» con aviso naranja.
+   Paleta de marca + Ember (#B4531A) para texto naranja accesible.
+   Regla de contraste: sobre naranja va texto carbón (5,6:1), nunca blanco. */
+@font-face{font-family:"Plus Jakarta Sans";font-weight:400;font-display:swap;src:url("../vendor/fonts/plus-jakarta-sans-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Plus Jakarta Sans";font-weight:500;font-display:swap;src:url("../vendor/fonts/plus-jakarta-sans-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"Plus Jakarta Sans";font-weight:600;font-display:swap;src:url("../vendor/fonts/plus-jakarta-sans-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Plus Jakarta Sans";font-weight:700;font-display:swap;src:url("../vendor/fonts/plus-jakarta-sans-latin-700-normal.woff2") format("woff2")}
+@font-face{font-family:"Plus Jakarta Sans";font-weight:800;font-display:swap;src:url("../vendor/fonts/plus-jakarta-sans-latin-800-normal.woff2") format("woff2")}
+
+:root{
+  --naranja:#F47721; --flame:#E84932; --amber:#FFB84D; --carbon:#252321; --blanco:#F7F5F1;
+  --sand:#EAE4DC; --terracota:#C85B36; --durazno:#FCE9DA; --exito:#287A56; --ember:#B4531A;
+  --texto-2:#4A433D; --texto-3:#5E5750; --borde:#EAE4DC; --borde-fuerte:#D9D1C6; --na:#B8AFA4;
+  --bs-body-font-family:"Plus Jakarta Sans",system-ui,sans-serif; --bs-body-color:#252321; --bs-body-bg:#F7F5F1;
+  --bs-link-color:#B4531A; --bs-link-hover-color:#8A3E12; --bs-link-color-rgb:180,83,26; --bs-link-hover-color-rgb:138,62,18;
+  --bs-border-color:#EAE4DC; --bs-border-radius:12px; --bs-secondary-color:#5E5750;
+  --bs-focus-ring-color:rgba(244,119,33,.35);
+}
+body{background:var(--blanco);color:var(--carbon);font-family:var(--bs-body-font-family)}
+h1,h2,h3,.fw-black{font-weight:800}
+.text-ember{color:var(--ember)!important} .text-muted{color:var(--texto-3)!important}
+.bg-durazno{background:var(--durazno)!important}
+
+/* ---------- Estructura ---------- */
+.app{display:flex;min-height:100vh}
+.sidebar{width:260px;flex-shrink:0;background:#fff;border-right:1px solid var(--borde)}
+@media (min-width:992px){.sidebar{position:sticky;top:0;height:100vh}}
+.sidebar .logo{height:40px}
+.sidebar .nav-link{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;color:var(--texto-2);font-weight:600}
+.sidebar .nav-link i{font-size:1.15rem}
+.sidebar .nav-link:hover{background:var(--blanco);color:var(--carbon)}
+.sidebar .nav-link.active{background:var(--durazno);color:var(--carbon);font-weight:700}
+.sidebar .nav-link.active i{color:var(--ember)}
+.usuario{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:var(--blanco)}
+.avatar-iniciales{width:40px;height:40px;border-radius:50%;background:var(--carbon);color:var(--amber);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+.topbar{background:#fff;border-bottom:1px solid var(--borde)}
+.contenido{min-width:0;flex:1;padding:32px 40px 48px;max-width:1280px}
+@media (max-width:991.98px){.contenido{padding:20px 16px 40px}}
+.titulo{font-size:1.75rem;font-weight:800;letter-spacing:-.01em;margin:0}
+.subtitulo{color:var(--texto-3);font-size:.9rem}
+
+/* ---------- Tarjetas ---------- */
+.tarjeta{background:#fff;border:1px solid var(--borde);border-radius:18px}
+.tarjeta-cuerpo{padding:22px 24px}
+.tarjeta h2{font-size:1.06rem;font-weight:800;margin:0}
+.kpi .etiqueta{font-size:.82rem;color:var(--texto-3);font-weight:600}
+.kpi .valor{font-size:2.15rem;font-weight:800;line-height:1.15;margin-top:4px}
+.kpi .nota{font-size:.8rem;color:var(--texto-3)}
+.barra{height:8px;background:var(--sand);border-radius:99px;overflow:hidden;margin-top:8px}
+.barra>span{display:block;height:100%;border-radius:99px;background:var(--naranja)}
+.barra.amber>span{background:var(--amber)}
+.barra.gruesa{height:12px}
+
+/* Aviso naranja (de la propuesta Bitácora) */
+.aviso-naranja{background:var(--naranja);border-radius:28px;padding:32px 40px 0;display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 24px;overflow:hidden;color:var(--carbon)}
+.aviso-naranja .texto{flex:1 1 380px;padding-bottom:32px}
+.aviso-naranja .saludo{font-weight:700;color:#3A1A08}
+.aviso-naranja h1{font-size:2.4rem;line-height:1.08;letter-spacing:-.02em;margin:6px 0 10px;font-weight:800}
+.aviso-naranja p{color:#3A1A08;font-size:1.03rem;max-width:560px;margin:0 0 18px}
+.aviso-naranja img{height:230px;margin-bottom:-6px}
+@media (max-width:767.98px){.aviso-naranja{padding:24px 22px 0}.aviso-naranja h1{font-size:1.7rem}.aviso-naranja img{height:140px;margin-left:auto}}
+
+/* ---------- Botones ---------- */
+.btn{min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:.45rem;border-radius:12px;font-weight:700;padding:0 18px}
+.btn-sm{min-height:36px;border-radius:10px;padding:0 12px}
+.btn-primary{--bs-btn-bg:#F47721;--bs-btn-border-color:#F47721;--bs-btn-color:#252321;--bs-btn-hover-bg:#E5691A;--bs-btn-hover-border-color:#E5691A;--bs-btn-hover-color:#252321;--bs-btn-active-bg:#D65F14;--bs-btn-active-color:#252321;--bs-btn-disabled-bg:#F6B68A;--bs-btn-disabled-border-color:#F6B68A;--bs-btn-disabled-color:#4A433D;font-weight:800}
+.btn-dark{--bs-btn-bg:#252321;--bs-btn-border-color:#252321;--bs-btn-hover-bg:#3A3632;--bs-btn-hover-border-color:#3A3632;--bs-btn-color:#F7F5F1}
+.btn-claro{background:var(--durazno);border:0;color:var(--carbon)} .btn-claro:hover{background:#F8DCC5;color:var(--carbon)}
+.btn-outline-secondary{--bs-btn-color:#252321;--bs-btn-border-color:#D9D1C6;--bs-btn-hover-bg:#fff;--bs-btn-hover-color:#252321;--bs-btn-hover-border-color:#A79E93;background:#fff;border-width:1.5px}
+.btn-outline-primary{--bs-btn-color:#8A3E12;--bs-btn-border-color:#F47721;--bs-btn-hover-bg:#FCE9DA;--bs-btn-hover-color:#252321;--bs-btn-hover-border-color:#F47721;background:#fff;border-width:1.5px}
+
+/* ---------- Formularios ---------- */
+.form-control,.form-select{border:1.5px solid var(--borde-fuerte);border-radius:12px;min-height:46px;padding:.6rem .9rem}
+textarea.form-control{min-height:96px}
+.form-control:focus,.form-select:focus{border-color:var(--naranja);box-shadow:0 0 0 .2rem rgba(244,119,33,.25)}
+.form-label{font-weight:700;font-size:.92rem}
+.requerido::after{content:" *";color:#A8321F}
+.form-check-input:checked{background-color:var(--naranja);border-color:var(--naranja)}
+.form-check-input:focus{box-shadow:0 0 0 .2rem rgba(244,119,33,.25);border-color:var(--naranja)}
+
+/* ---------- Tablas ---------- */
+.tabla{width:100%;border-collapse:collapse;font-size:.9rem}
+.tabla thead th{background:var(--blanco);color:var(--texto-3);font-weight:700;padding:12px;text-align:left;white-space:nowrap}
+.tabla td{padding:14px 12px;border-top:1px solid var(--borde);vertical-align:middle}
+.tabla tr>*:first-child{padding-left:24px} .tabla tr>*:last-child{padding-right:24px}
+.tabla tbody tr:hover{background:#FBFAF7}
+
+/* ---------- Chips: color + símbolo + texto ---------- */
+.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:999px;font-size:.78rem;font-weight:700;white-space:nowrap}
+.chip-implementado{background:#E3F1EA;color:#1F6345} .chip-implementado::before{content:"\f287"}
+.chip-parcial{background:#FFF1D9;color:#7A5300} .chip-parcial::before{content:"\f288"}
+.chip-no-implementado{background:#FCE3DF;color:#A8321F} .chip-no-implementado::before{content:"\f28a"}
+.chip-no-aplicable{background:var(--sand);color:#4A433D} .chip-no-aplicable::before{content:"\f2e6"}
+.chip-pendiente{background:#fff;color:var(--texto-3);border:1.5px dashed var(--borde-fuerte)}
+.chip-borrador{background:var(--sand);color:#4A433D}
+.chip-en-ejecucion{background:var(--durazno);color:#8A3E12}
+.chip-en-revision{background:#FFF1D9;color:#7A5300}
+.chip-cerrada{background:#E3F1EA;color:#1F6345}
+.chip-alta{background:#FCE3DF;color:#A8321F} .chip-media{background:#FFF1D9;color:#7A5300} .chip-baja{background:var(--sand);color:#4A433D}
+.punto{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px}
+
+/* ---------- Avisos con Drakon ---------- */
+.alert{border-radius:14px;border:0;display:flex;align-items:center;gap:12px;font-weight:500}
+.alert img{height:44px;flex-shrink:0}
+.alert-success{background:#E3F1EA;color:#1F4D38} .alert-danger{background:#FCE3DF;color:#7E2617}
+.alert-warning{background:#FFF1D9;color:#5C3F00} .alert-info{background:var(--durazno);color:#5A2A0C}
+.alert .btn-close{margin-left:auto}
+.ayuda-drakon{display:flex;align-items:center;gap:16px;background:#fff;border:1px solid var(--borde);border-radius:18px;padding:14px 20px}
+.ayuda-drakon img{height:64px}
+
+/* ---------- Estados vacíos y momentos ---------- */
+.momento{text-align:center;padding:40px 24px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.momento img{height:130px;margin-bottom:6px}
+.momento h2{font-size:1.25rem}
+
+/* ---------- Pasos de la auditoría ---------- */
+.pasos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;text-align:center;font-size:.85rem}
+.paso .circulo{width:38px;height:38px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-weight:800;background:#fff;border:2px dashed var(--borde-fuerte);color:var(--texto-3)}
+.paso.hecho .circulo{background:var(--exito);border:0;color:#fff}
+.paso.actual .circulo{background:var(--naranja);border:4px solid var(--durazno);color:var(--carbon)}
+.paso b{display:block;color:var(--carbon)} .paso span{color:var(--texto-3)}
+
+/* ---------- Login ---------- */
+.login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--sand)}
+.login .tarjeta{max-width:420px;width:100%;padding:32px;text-align:center}
+.login img.drakon{height:130px}
+
+/* ---------- Selección de controles ---------- */
+.contador{border-radius:10px;padding:8px 14px;font-weight:800;color:#fff}
+.contador.ok{background:var(--exito)} .contador.fuera{background:#A8321F}
+.tabla tr.seleccionado{background:#FFF7F0}
+.barra-fija{position:sticky;top:0;z-index:5}
+@media (max-width:991.98px){.barra-fija{top:64px}}
+@media (max-width:575.98px){.kpi .valor{font-size:1.6rem;white-space:nowrap}.tarjeta-cuerpo{padding:16px}}
+
+/* ---------- Selector de estado (evaluación) ---------- */
+.estados{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:767.98px){.estados{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.estado{display:flex;align-items:center;justify-content:center;gap:6px;min-height:56px;padding:8px 10px;border-radius:12px;border:1.5px solid var(--borde-fuerte);background:#fff;font-weight:700;font-size:.9rem;text-align:center;cursor:pointer}
+.estado:hover{border-color:#A79E93}
+.estado-implementado{color:#1F6345} .estado-implementado::before{content:"\f287"}
+.estado-parcial{color:#7A5300} .estado-parcial::before{content:"\f288"}
+.estado-no_implementado{color:#A8321F} .estado-no_implementado::before{content:"\f28a"}
+.estado-no_aplicable{color:#4A433D} .estado-no_aplicable::before{content:"\f2e6"}
+.btn-check:checked+.estado{border:2px solid var(--naranja);background:#FFF1D9;color:var(--carbon);font-weight:800}
+.btn-check:focus-visible+.estado{box-shadow:0 0 0 .2rem rgba(244,119,33,.35)}
+fieldset:disabled .estado{opacity:.7;cursor:default}
+.hallazgo-campos dt{font-size:.8rem;color:var(--texto-3);font-weight:700}
+.hallazgo-campos dd{margin-bottom:12px}
+
+/* Símbolos de estado con Bootstrap Icons (la tipografía de marca no trae ◐) */
+[class*="chip-"]::before,[class*="estado-"]::before{font-family:"bootstrap-icons";font-weight:400;font-size:.85em;line-height:1}

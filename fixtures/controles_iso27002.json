@@ -1,0 +1,560 @@
+[
+ {
+  "codigo": "5.1",
+  "nombre": "Políticas para la seguridad de la información",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "Garantizar la idoneidad, la adecuación y la eficacia continuas de la dirección de gestión y el apoyo a la seguridad de la información de acuerdo con los requisitos comerciales, legales, estatutarios, reglamentarios y contractuales."
+ },
+ {
+  "codigo": "5.2",
+  "nombre": "Roles y responsabilidades de seguridad de la información",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "Los roles y responsabilidades de seguridad de la información deben definirse y asignarse de acuerdo con las necesidades de la organización."
+ },
+ {
+  "codigo": "5.3",
+  "nombre": "Segregación de deberes",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "Deben segregarse los deberes conflictivos y las áreas conflictivas de responsabilidad."
+ },
+ {
+  "codigo": "5.4",
+  "nombre": "Responsabilidades de gestión (la dirección)",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "La gerencia debe exigir a todo el personal que aplique la seguridad de la información de acuerdo con la política de seguridad de la información establecida, las políticas y los procedimientos específicos del tema de la organización."
+ },
+ {
+  "codigo": "5.5",
+  "nombre": "Contacto con las autoridades",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "La organización debe establecer y mantener contacto con las autoridades pertinentes."
+ },
+ {
+  "codigo": "5.6",
+  "nombre": "Contacto con grupos de interés especial",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "La organización debe establecer y mantener contacto con grupos de interés especial u otros foros especializados en seguridad y asociaciones profesionales."
+ },
+ {
+  "codigo": "5.7",
+  "nombre": "Inteligencia de amenazas",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "La información relacionada con las amenazas a la seguridad de la información debe recopilarse y analizarse para generar información sobre amenazas."
+ },
+ {
+  "codigo": "5.8",
+  "nombre": "Seguridad de la información en la gestión de proyectos",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "La seguridad de la información debe integrarse en la gestión de proyectos."
+ },
+ {
+  "codigo": "5.9",
+  "nombre": "Inventario de información y otros activos asociados",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "Se debe desarrollar y mantener un inventario de información y otros activos asociados, incluidos los propietarios."
+ },
+ {
+  "codigo": "5.10",
+  "nombre": "Uso aceptable de información y otros activos asociados",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "Deben identificarse, documentarse e implementarse reglas para el uso aceptable y procedimientos para el manejo de la información y otros activos asociados."
+ },
+ {
+  "codigo": "5.11",
+  "nombre": "Retorno de los activos",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "El personal y otras partes interesadas, según corresponda, deben devolver todos los activos de la organización que estén en su poder al cambiar o terminar su empleo, contrato o acuerdo."
+ },
+ {
+  "codigo": "5.12",
+  "nombre": "Clasificación de información",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "La información debe clasificarse de acuerdo con las necesidades de seguridad de la información de la organización en función de la confidencialidad, la integridad, la disponibilidad y los requisitos pertinentes de las partes interesadas."
+ },
+ {
+  "codigo": "5.13",
+  "nombre": "Etiquetado de información",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "Se debe desarrollar e implementar un conjunto apropiado de procedimientos para el etiquetado de la información de acuerdo con el esquema de clasificación de la información adoptado por la organización."
+ },
+ {
+  "codigo": "5.14",
+  "nombre": "Transferencia de información",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "Deben existir reglas, procedimientos o acuerdos de transferencia de información para todos los tipos de instalaciones de transferencia dentro de la organización y entre la organización y otras partes."
+ },
+ {
+  "codigo": "5.15",
+  "nombre": "Control de acceso",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "Las reglas para controlar el acceso físico y lógico a la información y otros activos asociados deben establecerse e implementarse en función de los requisitos comerciales y de seguridad de la información."
+ },
+ {
+  "codigo": "5.16",
+  "nombre": "Gestión de identidad",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "Debe gestionarse el ciclo de vida completo de las identidades."
+ },
+ {
+  "codigo": "5.17",
+  "nombre": "Información de autenticación",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "La asignación y gestión de la información de autenticación debe controlarse mediante un proceso de gestión, incluido el asesoramiento al personal sobre el manejo adecuado de la información de autenticación."
+ },
+ {
+  "codigo": "5.18",
+  "nombre": "Derechos de acceso",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "Los derechos de acceso a la información y otros activos asociados deben proporcionarse, revisarse, modificarse y eliminarse de acuerdo con la política y las reglas de control de acceso específicas del tema de la organización."
+ },
+ {
+  "codigo": "5.19",
+  "nombre": "Seguridad de la información en las relaciones con los proveedores",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "Deben definirse e implementarse procesos y procedimientos para gestionar los riesgos de seguridad de la información asociados con el uso de los productos o servicios del proveedor."
+ },
+ {
+  "codigo": "5.20",
+  "nombre": "Abordar la seguridad de la información dentro de los acuerdos de proveedores",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "Los requisitos de seguridad de la información pertinentes deben establecerse y acordarse con cada proveedor en función del tipo de relación con el proveedor."
+ },
+ {
+  "codigo": "5.21",
+  "nombre": "Gestión de la seguridad de la información en la cadena de suministro de las TIC",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "Deben definirse e implementarse procesos y procedimientos para gestionar los riesgos de seguridad de la información asociados con la cadena de suministro de productos y servicios de TIC."
+ },
+ {
+  "codigo": "5.22",
+  "nombre": "Monitoreo, revisión y gestión de cambios de servicios de proveedores",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "La organización debe monitorear, revisar, evaluar y gestionar periódicamente los cambios en las prácticas de seguridad de la información del proveedor y la prestación de servicios."
+ },
+ {
+  "codigo": "5.23",
+  "nombre": "Seguridad de la información para el uso de servicios en la nube",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "Los procesos de adquisición, uso, gestión y salida de los servicios en la nube deben establecerse de acuerdo con los requisitos de seguridad de la información de la organización."
+ },
+ {
+  "codigo": "5.24",
+  "nombre": "Gestión de incidentes de seguridad de la información Planificación y preparación",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "La organización debe planificar y prepararse para la gestión de incidentes de seguridad de la información definiendo, estableciendo y comunicando procesos, funciones y responsabilidades de gestión de incidentes de seguridad de la información."
+ },
+ {
+  "codigo": "5.25",
+  "nombre": "Evaluación y decisión sobre eventos de seguridad de la información",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "La organización debería evaluar los eventos de seguridad de la información y decidir si se clasificarán como incidentes de seguridad de la información."
+ },
+ {
+  "codigo": "5.26",
+  "nombre": "Respuesta a incidentes de seguridad de la información",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "Se debe responder a los incidentes de seguridad de la información de acuerdo con los procedimientos documentados."
+ },
+ {
+  "codigo": "5.27",
+  "nombre": "Aprender de los incidentes de seguridad de la información",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "El conocimiento obtenido de los incidentes de seguridad de la información debe utilizarse para fortalecer y mejorar los controles de seguridad de la información."
+ },
+ {
+  "codigo": "5.28",
+  "nombre": "Recopilación de evidencia",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "La organización debe establecer e implementar procedimientos para la identificación, recopilación, adquisición y preservación de evidencia relacionada con eventos de seguridad de la información."
+ },
+ {
+  "codigo": "5.29",
+  "nombre": "Seguridad de la información durante eventos disruptivos",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "La organización debe planificar cómo mantener la seguridad de la información en un nivel adecuado durante la interrupción."
+ },
+ {
+  "codigo": "5.30",
+  "nombre": "Preparación para las TIC para la continuidad del negocio",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "La preparación de las TIC debe planificarse, implementarse, mantenerse y probarse en función de los objetivos de continuidad del negocio y los requisitos de continuidad de las TIC."
+ },
+ {
+  "codigo": "5.31",
+  "nombre": "Requisitos legales, legales, regulatorios y contractuales",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "Los requisitos legales, estatutarios, reglamentarios y contractuales relevantes para la seguridad de la información y el enfoque de la organización para cumplir con estos requisitos deben identificarse, documentarse y mantenerse actualizados."
+ },
+ {
+  "codigo": "5.32",
+  "nombre": "Derechos de propiedad intelectual",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "La organización debe implementar procedimientos apropiados para proteger los derechos de propiedad intelectual."
+ },
+ {
+  "codigo": "5.33",
+  "nombre": "Protección de registros",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "Los registros deben protegerse contra pérdida, destrucción, falsificación, acceso no autorizado y publicación no autorizada."
+ },
+ {
+  "codigo": "5.34",
+  "nombre": "Privacidad y protección de PII",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "La organización debe identificar y cumplir los requisitos relacionados con la preservación de la privacidad y la protección de la PII de acuerdo con las leyes y reglamentos aplicables y los requisitos contractuales."
+ },
+ {
+  "codigo": "5.35",
+  "nombre": "Revisión independiente de la seguridad de la información",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "El enfoque de la organización para gestionar la seguridad de la información y su implementación, incluidas las personas, los procesos y las tecnologías, debe revisarse de forma independiente a intervalos planificados o cuando se produzcan cambios significativos."
+ },
+ {
+  "codigo": "5.36",
+  "nombre": "Cumplimiento de las políticas, reglas y estándares para la seguridad de la información",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "El cumplimiento de la política de seguridad de la información de la organización, las políticas específicas del tema, las reglas y los estándares debe revisarse periódicamente."
+ },
+ {
+  "codigo": "5.37",
+  "nombre": "Procedimientos operativos documentados",
+  "categoria": "ORGANIZACIONAL",
+  "descripcion": "Los procedimientos operativos para las instalaciones de procesamiento de información deben documentarse y ponerse a disposición del personal que los necesite."
+ },
+ {
+  "codigo": "6.1",
+  "nombre": "Selección",
+  "categoria": "PERSONAS",
+  "descripcion": "Los controles de verificación de antecedentes de todos los candidatos para convertirse en personal deben llevarse a cabo antes de unirse a la organización y de manera continua, teniendo en cuenta las leyes, regulaciones y ética aplicables, y deben ser proporcionales a los requisitos comerciales, la clasificación de la información a la que se accede y la riesgos percibidos."
+ },
+ {
+  "codigo": "6.2",
+  "nombre": "Términos y condiciones de empleo",
+  "categoria": "PERSONAS",
+  "descripcion": "Los acuerdos contractuales de empleo deben establecer las responsabilidades del personal y de la organización para la seguridad de la información."
+ },
+ {
+  "codigo": "6.3",
+  "nombre": "Conciencia de seguridad, educación y capacitación de la información",
+  "categoria": "PERSONAS",
+  "descripcion": "El personal de la organización y las partes interesadas relevantes deben recibir la conciencia, educación y capacitación adecuadas sobre la seguridad de la información y actualizaciones regulares de la política de seguridad de la información de la organización, las políticas y los procedimientos específicos del tema, según sea relevante para su función laboral."
+ },
+ {
+  "codigo": "6.4",
+  "nombre": "Proceso Disciplinario",
+  "categoria": "PERSONAS",
+  "descripcion": "Se debe formalizar y comunicar un proceso disciplinario para tomar acciones contra el personal y otras partes interesadas relevantes que hayan cometido una violación de la política de seguridad de la información."
+ },
+ {
+  "codigo": "6.5",
+  "nombre": "Responsabilidades después de la terminación o cambio de empleo",
+  "categoria": "PERSONAS",
+  "descripcion": "Las responsabilidades y deberes de seguridad de la información que siguen siendo válidos después de la terminación o el cambio de empleo deben definirse, aplicarse y comunicarse al personal pertinente y otras partes interesadas."
+ },
+ {
+  "codigo": "6.6",
+  "nombre": "Acuerdos de confidencialidad o no divulgación",
+  "categoria": "PERSONAS",
+  "descripcion": "Los acuerdos de confidencialidad o no divulgación que reflejen las necesidades de la organización para la protección de la información deben ser identificados, documentados, revisados regularmente y firmados por el personal y otras partes interesadas relevantes."
+ },
+ {
+  "codigo": "6.7",
+  "nombre": "Trabajo remoto",
+  "categoria": "PERSONAS",
+  "descripcion": "Se deben implementar medidas de seguridad cuando el personal trabaja de forma remota para proteger la información a la que se accede, procesa o almacena fuera de las instalaciones de la organización."
+ },
+ {
+  "codigo": "6.8",
+  "nombre": "Informes de eventos de seguridad de la información",
+  "categoria": "PERSONAS",
+  "descripcion": "La organización debe proporcionar un mecanismo para que el personal informe eventos de seguridad de la información observados o sospechados a través de los canales apropiados de manera oportuna."
+ },
+ {
+  "codigo": "7.1",
+  "nombre": "Perímetros de seguridad física",
+  "categoria": "FISICO",
+  "descripcion": "Los perímetros de seguridad deben definirse y utilizarse para proteger las áreas que contienen información y otros activos asociados."
+ },
+ {
+  "codigo": "7.2",
+  "nombre": "Entrada física",
+  "categoria": "FISICO",
+  "descripcion": "Las áreas seguras deben estar protegidas por controles de entrada y puntos de acceso apropiados."
+ },
+ {
+  "codigo": "7.3",
+  "nombre": "Asegurar oficinas, habitaciones e instalaciones",
+  "categoria": "FISICO",
+  "descripcion": "Debe diseñarse e implementarse la seguridad física de las oficinas, salas e instalaciones."
+ },
+ {
+  "codigo": "7.4",
+  "nombre": "Monitoreo de seguridad física",
+  "categoria": "FISICO",
+  "descripcion": "Las instalaciones deben ser monitoreadas continuamente para detectar accesos físicos no autorizados."
+ },
+ {
+  "codigo": "7.5",
+  "nombre": "Protección contra amenazas físicas y ambientales",
+  "categoria": "FISICO",
+  "descripcion": "Se debe diseñar e implementar la protección contra amenazas físicas y ambientales, como desastres naturales y otras amenazas físicas intencionales o no intencionales a la infraestructura."
+ },
+ {
+  "codigo": "7.6",
+  "nombre": "Trabajando en áreas seguras",
+  "categoria": "FISICO",
+  "descripcion": "Se deben diseñar e implementar medidas de seguridad para trabajar en áreas seguras."
+ },
+ {
+  "codigo": "7.7",
+  "nombre": "Descripción de la pantalla y pantalla clara",
+  "categoria": "FISICO",
+  "descripcion": "Deben definirse y aplicarse adecuadamente reglas de escritorio limpio para documentos y medios de almacenamiento extraíbles y reglas de pantalla limpia para las instalaciones de procesamiento de información."
+ },
+ {
+  "codigo": "7.8",
+  "nombre": "Manejo de equipos y protección",
+  "categoria": "FISICO",
+  "descripcion": "El equipo debe estar ubicado de forma segura y protegida."
+ },
+ {
+  "codigo": "7.9",
+  "nombre": "Seguridad de activos fuera de las instalaciones",
+  "categoria": "FISICO",
+  "descripcion": "Los activos fuera del sitio deben estar protegidos."
+ },
+ {
+  "codigo": "7.10",
+  "nombre": "Medios de almacenamiento",
+  "categoria": "FISICO",
+  "descripcion": "Los medios de almacenamiento deben gestionarse a lo largo de su ciclo de vida de adquisición, uso, transporte y eliminación de acuerdo con el esquema de clasificación y los requisitos de manipulación de la organización."
+ },
+ {
+  "codigo": "7.11",
+  "nombre": "Soporte de servicios públicos",
+  "categoria": "FISICO",
+  "descripcion": "Los equipos se deben proteger contra fallas de energía y otras interrupciones causadas por fallas en los servicios de suministro."
+ },
+ {
+  "codigo": "7.12",
+  "nombre": "Cableado de seguridad",
+  "categoria": "FISICO",
+  "descripcion": "Los cables que transportan energía, datos o servicios de información de apoyo deben protegerse contra intercepciones, interferencias o daños."
+ },
+ {
+  "codigo": "7.13",
+  "nombre": "Mantenimiento de equipo",
+  "categoria": "FISICO",
+  "descripcion": "El equipo debe mantenerse correctamente para garantizar la disponibilidad, integridad y confidencialidad de la información."
+ },
+ {
+  "codigo": "7.14",
+  "nombre": "Eliminación o reutilización segura del equipo",
+  "categoria": "FISICO",
+  "descripcion": "Los elementos del equipo que contengan medios de almacenamiento deben verificarse para garantizar que todos los datos confidenciales y el software con licencia se hayan eliminado o sobrescrito de forma segura antes de su eliminación o reutilización."
+ },
+ {
+  "codigo": "8.1",
+  "nombre": "Dispositivos de punto final del usuario",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "La información almacenada, procesada o accesible a través de los dispositivos finales de los usuarios debe protegerse."
+ },
+ {
+  "codigo": "8.2",
+  "nombre": "Derechos de acceso privilegiados",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "La asignación y el uso de derechos de acceso privilegiado deben restringirse y gestionarse."
+ },
+ {
+  "codigo": "8.3",
+  "nombre": "Restricción de acceso a la información",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "El acceso a la información y otros activos asociados debe estar restringido de acuerdo con la política específica del tema establecida sobre control de acceso."
+ },
+ {
+  "codigo": "8.4",
+  "nombre": "Acceso al código fuente",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "El acceso de lectura y escritura al código fuente, las herramientas de desarrollo y las bibliotecas de software debe administrarse adecuadamente."
+ },
+ {
+  "codigo": "8.5",
+  "nombre": "Autenticación segura",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Las tecnologías y los procedimientos de autenticación segura deben implementarse en función de las restricciones de acceso a la información y la política específica del tema sobre el control de acceso."
+ },
+ {
+  "codigo": "8.6",
+  "nombre": "Gestión de capacidad",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "El uso de los recursos debe monitorearse y ajustarse de acuerdo con los requisitos de capacidad actuales y esperados."
+ },
+ {
+  "codigo": "8.7",
+  "nombre": "Protección contra malware",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "La protección contra el malware debe implementarse y respaldarse mediante la conciencia adecuada del usuario."
+ },
+ {
+  "codigo": "8.8",
+  "nombre": "Gestión de vulnerabilidades técnicas",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Se debe obtener información sobre las vulnerabilidades técnicas de los sistemas de información en uso, se debe evaluar la exposición de la organización a tales vulnerabilidades y se deben tomar las medidas apropiadas."
+ },
+ {
+  "codigo": "8.9",
+  "nombre": "Gestión de configuración",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Las configuraciones, incluidas las configuraciones de seguridad, de hardware, software, servicios y redes deben establecerse, documentarse, implementarse, monitorearse y revisarse."
+ },
+ {
+  "codigo": "8.10",
+  "nombre": "Eliminación de información",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "La información almacenada en sistemas de información, dispositivos o en cualquier otro medio de almacenamiento debe ser eliminada cuando ya no sea necesaria."
+ },
+ {
+  "codigo": "8.11",
+  "nombre": "Enmascaramiento de datos",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "El enmascaramiento de datos se debe utilizar de acuerdo con la política específica del tema de la organización sobre el control de acceso y otras políticas relacionadas con el tema específico, y los requisitos comerciales, teniendo en cuenta la legislación aplicable."
+ },
+ {
+  "codigo": "8.12",
+  "nombre": "Prevención de fuga de datos",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Las medidas de prevención de fuga de datos deben aplicarse a los sistemas, redes y cualquier otro dispositivo que procese, almacene o transmita información confidencial."
+ },
+ {
+  "codigo": "8.13",
+  "nombre": "Copia de seguridad de la información",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Las copias de respaldo de la información, el software y los sistemas deben mantenerse y probarse regularmente de acuerdo con la política de respaldo específica del tema acordada."
+ },
+ {
+  "codigo": "8.14",
+  "nombre": "Redundancia de instalaciones de procesamiento de información",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Las instalaciones de procesamiento de información deben implementarse con suficiente redundancia para cumplir con los requisitos de disponibilidad."
+ },
+ {
+  "codigo": "8.15",
+  "nombre": "Registro",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Se deben producir, almacenar, proteger y analizar registros que registren actividades, excepciones, fallas y otros eventos relevantes."
+ },
+ {
+  "codigo": "8.16",
+  "nombre": "Actividades de monitoreo",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Las redes, los sistemas y las aplicaciones deben monitorearse para detectar comportamientos anómalos y deben tomarse las medidas apropiadas para evaluar posibles incidentes de seguridad de la información."
+ },
+ {
+  "codigo": "8.17",
+  "nombre": "Sincronización de reloj",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Los relojes de los sistemas de procesamiento de información utilizados por la organización deben sincronizarse con las fuentes de tiempo aprobadas."
+ },
+ {
+  "codigo": "8.18",
+  "nombre": "Uso de programas de utilidad privilegiados",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "El uso de programas de utilidad que puedan anular los controles del sistema y de las aplicaciones debe restringirse y controlarse estrictamente."
+ },
+ {
+  "codigo": "8.19",
+  "nombre": "Instalación de software en sistemas operativos",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Deben implementarse procedimientos y medidas para gestionar de forma segura la instalación de software en los sistemas operativos."
+ },
+ {
+  "codigo": "8.20",
+  "nombre": "Seguridad de las redes",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Las redes y los dispositivos de red deben protegerse, administrarse y controlarse para proteger la información en los sistemas y aplicaciones."
+ },
+ {
+  "codigo": "8.21",
+  "nombre": "Seguridad de los servicios de red",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Los mecanismos de seguridad, los niveles de servicio y los requisitos de servicio de los servicios de red deben identificarse, implementarse y monitorearse."
+ },
+ {
+  "codigo": "8.22",
+  "nombre": "Segregación de redes",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Los grupos de servicios de información, usuarios y sistemas de información deben estar segregados en las redes de la organización."
+ },
+ {
+  "codigo": "8.23",
+  "nombre": "Filtrado web",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "El acceso a sitios web externos debe administrarse para reducir la exposición a contenido malicioso."
+ },
+ {
+  "codigo": "8.24",
+  "nombre": "Uso de la criptografía",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Deben definirse e implementarse reglas para el uso eficaz de la criptografía, incluida la gestión de claves criptográficas."
+ },
+ {
+  "codigo": "8.25",
+  "nombre": "Ciclo de vida de desarrollo seguro",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Deben establecerse y aplicarse reglas para el desarrollo seguro de software y sistemas."
+ },
+ {
+  "codigo": "8.26",
+  "nombre": "Requisitos de seguridad de la aplicación",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Los requisitos de seguridad de la información deben identificarse, especificarse y aprobarse al desarrollar o adquirir aplicaciones."
+ },
+ {
+  "codigo": "8.27",
+  "nombre": "Principios de arquitectura e ingeniería de sistema seguro",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Los principios para diseñar sistemas seguros deben establecerse, documentarse, mantenerse y aplicarse a cualquier actividad de desarrollo de sistemas de información."
+ },
+ {
+  "codigo": "8.28",
+  "nombre": "Codificación segura",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Los principios de codificación segura deben aplicarse al desarrollo de software."
+ },
+ {
+  "codigo": "8.29",
+  "nombre": "Pruebas de seguridad en desarrollo y aceptación",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Los procesos de prueba de seguridad deben definirse e implementarse en el ciclo de vida del desarrollo."
+ },
+ {
+  "codigo": "8.30",
+  "nombre": "Desarrollo subcontratado",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "La organización debe dirigir, monitorear y revisar las actividades relacionadas con el desarrollo de sistemas subcontratados."
+ },
+ {
+  "codigo": "8.31",
+  "nombre": "Separación de entornos de desarrollo, prueba y producción",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Los entornos de desarrollo, prueba y producción deben estar separados y protegidos."
+ },
+ {
+  "codigo": "8.32",
+  "nombre": "Gestión del cambio",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Los cambios en las instalaciones de procesamiento de información y los sistemas de información deben estar sujetos a procedimientos de gestión de cambios."
+ },
+ {
+  "codigo": "8.33",
+  "nombre": "Información de prueba",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "La información de las pruebas debe seleccionarse, protegerse y gestionarse adecuadamente."
+ },
+ {
+  "codigo": "8.34",
+  "nombre": "Protección de sistemas de información durante las pruebas de auditoría",
+  "categoria": "TECNOLOGICO",
+  "descripcion": "Las pruebas de auditoría y otras actividades de aseguramiento que involucren la evaluación de los sistemas operativos deben planificarse y acordarse entre el evaluador y la gerencia correspondiente."
+ }
+]

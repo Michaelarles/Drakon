@@ -1,0 +1,25 @@
+# Blueprint de Render: crea el servicio web gratuito desde este repositorio.
+# La base de datos vive en Neon (no vence); su URL se pega a mano en DATABASE_URL.
+services:
+  - type: web
+    name: drakon-mini
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /salud/
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        sync: false          # pegar el connection string de Neon
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "false"
+      - key: DJANGO_SUPERUSER_USERNAME
+        sync: false
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
+      - key: DEMO_USUARIO          # opcional: carga Empresa ABC si la base está vacía
+        sync: false
+      - key: DEMO_CLAVE
+        sync: false

@@ -1,0 +1,42 @@
+{% extends "drakon/base.html" %}{% load static drakon_tags %}
+{% block titulo %}Auditorías{% endblock %}
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+  <div><h1 class="titulo">Auditorías</h1><div class="subtitulo">Todas las auditorías a tu cargo</div></div>
+  <a href="{% url 'auditoria_crear' %}" class="btn btn-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i> Nueva auditoría</a>
+</div>
+{% if filas %}
+<div class="tarjeta overflow-hidden">
+  <div class="table-responsive">
+    <table class="tabla">
+      <thead><tr><th>Organización</th><th>Periodo</th><th>Avance</th><th>Hallazgos</th><th>Estado</th><th class="text-end">Cumplimiento</th><th><span class="visually-hidden">Acciones</span></th></tr></thead>
+      <tbody>{% for a, i in filas %}
+        <tr>
+          <td><a class="fw-bold text-reset" href="{% url 'auditoria_detalle' a.id %}">{{ a.organizacion }}</a></td>
+          <td class="text-nowrap">{{ a.fecha_inicio|date:"j M" }} – {{ a.fecha_fin|date:"j M Y" }}</td>
+          <td style="min-width:140px">
+            <div class="small">{{ i.total|restar:i.pendientes }}/{{ i.total }} evaluados</div>
+            <div class="barra" aria-hidden="true">{% if i.total %}<span style="width:{% widthratio i.total|restar:i.pendientes i.total 100 %}%"></span>{% endif %}</div>
+          </td>
+          <td>{{ i.total_hallazgos }}</td>
+          <td><span class="chip {{ a.estado|chip }}">{{ a.estado.etiqueta }}</span></td>
+          <td class="text-end fw-bold">{{ i.cumplimiento_base|pct }}</td>
+          <td class="text-end text-nowrap">
+            <a class="btn btn-outline-secondary btn-sm" href="{% url 'auditoria_detalle' a.id %}" aria-label="Ver {{ a.organizacion }}"><i class="bi bi-eye" aria-hidden="true"></i></a>
+            {% if a.estado.value == "BORRADOR" or a.estado.value == "EN_EJECUCION" %}<a class="btn btn-outline-secondary btn-sm" href="{% url 'auditoria_editar' a.id %}" aria-label="Editar {{ a.organizacion }}"><i class="bi bi-pencil" aria-hidden="true"></i></a>{% endif %}
+            {% if a.editable %}<a class="btn btn-outline-secondary btn-sm" href="{% url 'auditoria_eliminar' a.id %}" aria-label="Eliminar {{ a.organizacion }}"><i class="bi bi-trash" aria-hidden="true"></i></a>{% endif %}
+          </td>
+        </tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<section class="tarjeta momento">
+  <img src="{% static 'drakon/avatar/vacio.png' %}" alt="">
+  <h2>Aún no hay auditorías</h2>
+  <p class="text-muted mb-2">Crea la primera: define la organización, el alcance y elige entre 10 y 15 controles.</p>
+  <a class="btn btn-primary" href="{% url 'auditoria_crear' %}"><i class="bi bi-plus-lg" aria-hidden="true"></i> Crear auditoría</a>
+</section>
+{% endif %}
+{% endblock %}

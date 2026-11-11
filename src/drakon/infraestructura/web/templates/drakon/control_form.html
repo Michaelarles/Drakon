@@ -1,0 +1,27 @@
+{% extends "drakon/base.html" %}{% load static %}
+{% block titulo %}{% if control %}Editar {{ control.codigo }}{% else %}Nuevo control{% endif %}{% endblock %}
+{% block contenido %}
+<nav aria-label="Ruta"><ol class="breadcrumb small mb-2">
+  <li class="breadcrumb-item"><a href="{% url 'catalogo' %}">Catálogo</a></li>
+  <li class="breadcrumb-item active" aria-current="page">{% if control %}Editar {{ control.codigo }}{% else %}Nuevo control{% endif %}</li>
+</ol></nav>
+<h1 class="titulo">{% if control %}Editar control {{ control.codigo }}{% else %}Nuevo control{% endif %}</h1>
+<p class="subtitulo mb-4">Solo el rol administrador modifica el catálogo. Los informes ya emitidos no cambian: guardan una copia de los criterios.</p>
+<form method="post" novalidate class="tarjeta tarjeta-cuerpo p-4" style="max-width:860px">{% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert alert-danger"><img src="{% static 'drakon/avatar/error.png' %}" alt=""><div>{{ form.non_field_errors|join:" " }}</div></div>{% endif %}
+  <div class="row g-3">
+    {% for campo in form %}
+    <div class="{% if campo.name == 'codigo' or campo.name == 'categoria' %}col-md-6{% else %}col-12{% endif %}">
+      <label for="{{ campo.id_for_label }}" class="form-label requerido">{{ campo.label }}</label>
+      {{ campo }}
+      {% if campo.help_text %}<div class="form-text">{{ campo.help_text }}</div>{% endif %}
+      {% for e in campo.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+  <div class="d-flex flex-wrap gap-2 mt-4">
+    <button class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Guardar</button>
+    <a class="btn btn-outline-secondary" href="{% url 'catalogo' %}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

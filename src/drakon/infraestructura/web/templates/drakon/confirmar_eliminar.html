@@ -1,0 +1,19 @@
+{% extends "drakon/base.html" %}{% load static %}
+{% block titulo %}Confirmar{% endblock %}
+{% block contenido %}
+<section class="tarjeta momento mx-auto" style="max-width:620px">
+  <img src="{% static 'drakon/avatar/error.png' %}" alt="">
+  <h1 class="h4 mb-1">{{ titulo }}</h1>
+  <p class="text-muted mb-2">{{ mensaje|truncatewords:40 }}</p>
+  {% if consecuencias %}
+  <div class="text-start small rounded-4 p-3 mb-2" style="background:var(--blanco)">
+    <b>También se eliminará o afectará:</b>
+    <ul class="mb-0 mt-1">{% for c in consecuencias %}<li>{{ c }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+  <form method="post" class="d-flex flex-wrap justify-content-center gap-2 mt-2">{% csrf_token %}
+    <a class="btn btn-outline-secondary" href="{{ url_cancelar }}">Cancelar</a>
+    <button class="btn btn-danger" style="--bs-btn-bg:#A8321F;--bs-btn-border-color:#A8321F;--bs-btn-hover-bg:#8E2A1A;--bs-btn-hover-border-color:#8E2A1A"><i class="bi bi-trash" aria-hidden="true"></i> {{ boton }}</button>
+  </form>
+</section>
+{% endblock %}

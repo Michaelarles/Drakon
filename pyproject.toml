@@ -1,0 +1,11 @@
+[project]
+name = "drakon"
+version = "0.1.0"
+description = "DRAKON – Sistema de Gestión de Auditorías de Sistemas de Información (arquitectura hexagonal)"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["tests"]
+DJANGO_SETTINGS_MODULE = "drakon.infraestructura.django_config.settings_test"
+addopts = "-q"
