@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # DRAKON
 
 ![Drakon](src/drakon/infraestructura/web/static/drakon/avatar/logo_completo.png)
@@ -52,7 +51,17 @@ PYTHONPATH=src lint-imports
 
 Para probar contra PostgreSQL: `DATABASE_URL=postgresql://... pytest`.
 
-## Despliegue (planes gratuitos)
+## Despliegue en Railway (sin tarjeta)
+
+1. **Neon:** copia el connection string **directo** (sin `-pooler`).
+2. **Railway** (railway.com) → entra con GitHub → *New Project → Deploy from GitHub repo* → elige `drakon`. Railway detecta el `Dockerfile` y el `railway.json` (con el chequeo de salud en `/salud/`).
+3. **Variables** del servicio: `DATABASE_URL`, `SECRET_KEY` (cadena larga aleatoria), `DEBUG=false`, `DJANGO_SUPERUSER_USERNAME`, `DJANGO_SUPERUSER_PASSWORD`, `DEMO_USUARIO`, `DEMO_CLAVE`.
+4. **Settings → Networking → Generate Domain** para obtener la URL pública (`*.up.railway.app`). Django la acepta sola gracias a `RAILWAY_PUBLIC_DOMAIN`.
+5. Cada `git push` a `main` redespliega.
+
+La prueba gratuita de Railway trae $5 de crédito único por 30 días y no pide tarjeta. Después, el plan Free da $1 de crédito al mes.
+
+## Despliegue alternativo (Render)
 
 | Componente | Servicio |
 |---|---|
@@ -121,7 +130,3 @@ Ninguna eliminación ocurre con un GET: siempre hay una página de confirmación
 | RF09 Dashboard | ✅ | ✅ |
 
 > Los indicadores son descriptivos: no constituyen certificación ni sustituyen el juicio profesional del auditor. Todos los datos de Empresa ABC son ficticios.
-=======
-# Drakon
-Software de auditoria de sistemas
->>>>>>> 3267b94fcdebf07d6177eef3be30147c9f4ffa49

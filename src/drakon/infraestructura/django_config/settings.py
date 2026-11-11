@@ -18,9 +18,10 @@ if not SECRET_KEY:
     raise RuntimeError("Defina la variable de entorno SECRET_KEY (o DEBUG=true en local).")
 
 ALLOWED_HOSTS = [h for h in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h]
-RENDER_HOST = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
-if RENDER_HOST:
-    ALLOWED_HOSTS.append(RENDER_HOST)
+# Dominio público que inyecta la plataforma (Railway o Render); también vale ALLOWED_HOSTS a mano
+for variable in ("RAILWAY_PUBLIC_DOMAIN", "RENDER_EXTERNAL_HOSTNAME"):
+    if os.environ.get(variable):
+        ALLOWED_HOSTS.append(os.environ[variable])
 CSRF_TRUSTED_ORIGINS = [f"https://{h}" for h in ALLOWED_HOSTS if h not in ("localhost", "127.0.0.1")]
 
 INSTALLED_APPS = [
