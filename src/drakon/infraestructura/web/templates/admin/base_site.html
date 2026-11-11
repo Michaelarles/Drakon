@@ -1,0 +1,50 @@
+{% extends "admin/base.html" %}{% load static %}
+{# Admin de Django con la identidad de DRAKON: mismos colores, tipografía y logo. #}
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | DRAKON{% endblock %}
+
+{# Tema claro fijo: el modo oscuro automático del admin rompía la identidad visual #}
+{% block dark-mode-vars %}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="icon" type="image/png" href="{% static 'drakon/avatar/logo_icono.png' %}">
+<style>
+  @font-face{font-family:"Plus Jakarta Sans";font-weight:400;src:url("{% static 'vendor/fonts/plus-jakarta-sans-latin-400-normal.woff2' %}") format("woff2")}
+  @font-face{font-family:"Plus Jakarta Sans";font-weight:600;src:url("{% static 'vendor/fonts/plus-jakarta-sans-latin-600-normal.woff2' %}") format("woff2")}
+  @font-face{font-family:"Plus Jakarta Sans";font-weight:700;src:url("{% static 'vendor/fonts/plus-jakarta-sans-latin-700-normal.woff2' %}") format("woff2")}
+  :root, html[data-theme="light"], html[data-theme="dark"]{
+    --primary:#B4531A; --secondary:#252321; --accent:#FFB84D; --primary-fg:#FFFFFF;
+    --body-fg:#252321; --body-bg:#FFFFFF; --body-quiet-color:#5E5750; --body-medium-color:#4A433D; --body-loud-color:#252321;
+    --header-color:#F7F5F1; --header-branding-color:#FFB84D; --header-bg:#252321; --header-link-color:#F7F5F1;
+    --breadcrumbs-fg:#E3DCD2; --breadcrumbs-link-fg:#FFFFFF; --breadcrumbs-bg:#3A3632;
+    --link-fg:#B4531A; --link-hover-color:#8A3E12; --link-selected-fg:#8A3E12;
+    --hairline-color:#EAE4DC; --border-color:#D9D1C6;
+    --darkened-bg:#F7F5F1; --selected-bg:#EAE4DC; --selected-row:#FCE9DA;
+    --button-fg:#252321; --button-bg:#F47721; --button-hover-bg:#E5691A;
+    --default-button-bg:#252321; --default-button-hover-bg:#3A3632;
+    --object-tools-fg:#252321; --object-tools-bg:#FCE9DA; --object-tools-hover-bg:#F8DCC5;
+    --font-family-primary:"Plus Jakarta Sans",system-ui,sans-serif;
+    color-scheme: light;
+  }
+  .theme-toggle{display:none!important}
+  #header{padding:14px 32px}
+  #branding h1, #site-name{display:flex;align-items:center;gap:12px;font-weight:700}
+  #site-name a{display:flex;align-items:center;gap:12px;color:var(--header-color)!important}
+  #site-name img{height:34px}
+  #site-name .etiqueta{font-size:.95rem;color:var(--accent);border-left:1px solid #5E5750;padding-left:12px}
+  .button.default, input[type=submit].default, .submit-row input.default{color:#F7F5F1}
+  .module h2, .module caption, .inline-group h2{border-radius:6px 6px 0 0}
+  .volver-app{display:inline-block;margin-left:8px;padding:4px 10px;border-radius:8px;background:#F47721;color:#252321!important;font-weight:700}
+</style>
+{% endblock %}
+
+{% block branding %}
+<div id="site-name"><a href="{% url 'admin:index' %}"><img src="{% static 'drakon/avatar/logo_icono.png' %}" alt=""><span>DRAKON</span><span class="etiqueta">Administración</span></a></div>
+{% endblock %}
+
+{% block userlinks %}
+  <a class="volver-app" href="{% url 'dashboard' %}">← Volver a DRAKON</a> /
+  {% if user.has_usable_password %}<a href="{% url 'admin:password_change' %}">Cambiar contraseña</a> /{% endif %}
+  <form id="logout-form" method="post" action="{% url 'admin:logout' %}">{% csrf_token %}<button type="submit">Cerrar sesión</button></form>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

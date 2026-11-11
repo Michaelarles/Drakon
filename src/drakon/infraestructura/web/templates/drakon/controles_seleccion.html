@@ -25,13 +25,13 @@
   </div>
   <div class="tarjeta overflow-hidden">
     <div class="table-responsive"><table class="tabla">
-      <thead><tr><th style="width:100px">En auditoría</th><th>Código</th><th>Control</th><th>Categoría</th></tr></thead>
+      <thead><tr><th style="width:90px">En auditoría</th><th>Código</th><th>Control</th><th class="d-none d-md-table-cell">Categoría</th></tr></thead>
       <tbody>{% for c in controles %}
         <tr data-cat="{{ c.categoria.value }}" data-texto="{{ c.codigo }} {{ c.nombre|lower }} {{ c.descripcion|lower }}" class="{% if c.id in seleccionados %}seleccionado{% endif %}">
           <td><div class="form-check form-switch m-0"><input class="form-check-input sel" type="checkbox" role="switch" name="controles" value="{{ c.id }}" id="c{{ c.id }}" {% if c.id in seleccionados %}checked{% endif %} {% if bloqueado %}disabled{% endif %} style="width:2.6em;height:1.4em"></div></td>
           <td class="fw-bold"><label for="c{{ c.id }}">{{ c.codigo }}</label></td>
           <td><label for="c{{ c.id }}" class="fw-semibold">{{ c.nombre }}</label><div class="small text-muted d-none d-md-block">{{ c.descripcion|truncatewords:22 }}</div></td>
-          <td class="text-nowrap small">{{ c.categoria.etiqueta }}</td>
+          <td class="text-nowrap small d-none d-md-table-cell">{{ c.categoria.etiqueta }}</td>
         </tr>{% endfor %}</tbody>
     </table></div>
   </div>

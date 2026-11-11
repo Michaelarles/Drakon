@@ -100,3 +100,21 @@ def test_404_con_marca(cliente, settings):
     settings.DEBUG = False
     r = cliente.get("/no-existe/")
     assert r.status_code == 404 and "No encontramos esta página" in r.content.decode()
+
+
+def test_catalogo_con_categoria_invalida_no_se_rompe(cliente):
+    r = cliente.get(reverse("catalogo") + "?categoria=XX&q=acceso")
+    assert r.status_code == 200 and "Control de acceso" in r.content.decode()
+
+
+def test_403_con_marca(cliente):
+    r = cliente.get(reverse("control_nuevo"))
+    assert r.status_code == 403 and "No tienes permiso" in r.content.decode()
+
+
+def test_admin_con_identidad_drakon(client):
+    call_command("inicializar", verbosity=0)
+    admin = get_user_model().objects.create_superuser("root", "r@x.co", "Clave-segura-1")
+    client.force_login(admin)
+    html = client.get("/admin/").content.decode()
+    assert "Volver a DRAKON" in html and "#F47721" in html and "dark_mode.css" not in html

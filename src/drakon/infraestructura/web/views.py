@@ -4,7 +4,8 @@ from functools import wraps
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import connection
-from django.http import Http404, HttpResponse, HttpResponseForbidden, JsonResponse
+from django.core.exceptions import PermissionDenied
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
@@ -34,7 +35,7 @@ def con_auditoria(vista):
         except NoEncontrado:
             raise Http404("La auditoría no existe.")
         if auditoria.id_auditor != request.user.id and not es_admin(request.user):
-            return HttpResponseForbidden("No tiene acceso a esta auditoría.")
+            raise PermissionDenied("No tiene acceso a esta auditoría.")
         return vista(request, auditoria, *args, **kwargs)
     return login_required(envoltura)
 
@@ -47,7 +48,7 @@ def solo_admin(vista):
     @wraps(vista)
     def envoltura(request, *args, **kwargs):
         if not es_admin(request.user):
-            return HttpResponseForbidden("Solo el administrador puede modificar el catálogo.")
+            raise PermissionDenied("Solo el administrador puede modificar el catálogo.")
         return vista(request, *args, **kwargs)
     return login_required(envoltura)
 
@@ -218,6 +219,8 @@ def auditoria_estado(request, auditoria):
 @login_required
 def catalogo(request):
     categoria = request.GET.get("categoria") or None
+    if categoria not in {c.value for c in CategoriaControl}:
+        categoria = None  # un valor manipulado en la URL no debe romper la página
     texto = request.GET.get("q", "").strip() or None
     controles = c.catalogo().listar(categoria, texto)
     return render(request, "drakon/catalogo.html", {
@@ -639,7 +642,7 @@ def informe_pdf(request, id_informe):
     except NoEncontrado:
         raise Http404
     if auditoria.id_auditor != request.user.id and not es_admin(request.user):
-        return HttpResponseForbidden("No tiene acceso a este informe.")
+        raise PermissionDenied("No tiene acceso a este informe.")
     resp = HttpResponse(contenido, content_type="application/pdf")
     resp["Content-Disposition"] = f'inline; filename="informe_auditoria_{auditoria.id}_v{informe.version}.pdf"'
     return resp

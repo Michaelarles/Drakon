@@ -18,9 +18,13 @@
 {% if controles %}
 <div class="tarjeta overflow-hidden">
   <div class="table-responsive"><table class="tabla">
-    <thead><tr><th>Código</th><th>Control</th><th>Categoría</th><th>Criterio</th>{% if es_admin %}<th><span class="visually-hidden">Acciones</span></th>{% endif %}</tr></thead>
+    <thead><tr><th>Código</th><th>Control</th><th class="d-none d-md-table-cell">Categoría</th><th class="d-none d-lg-table-cell">Criterio</th>{% if es_admin %}<th><span class="visually-hidden">Acciones</span></th>{% endif %}</tr></thead>
     <tbody>{% for c in controles %}
-      <tr><td class="fw-bold">{{ c.codigo }}</td><td class="fw-semibold">{{ c.nombre }}</td><td class="text-nowrap">{{ c.categoria.etiqueta }}</td><td class="small text-muted">{{ c.descripcion }}</td>{% if es_admin %}<td class="text-nowrap"><a class="btn btn-outline-secondary btn-sm" href="{% url 'control_editar' c.id %}" aria-label="Editar {{ c.codigo }}"><i class="bi bi-pencil" aria-hidden="true"></i></a> <a class="btn btn-outline-secondary btn-sm" href="{% url 'control_eliminar' c.id %}" aria-label="Eliminar {{ c.codigo }}"><i class="bi bi-trash" aria-hidden="true"></i></a></td>{% endif %}</tr>
+      <tr><td class="fw-bold text-nowrap">{{ c.codigo }}</td>
+        <td><span class="fw-semibold">{{ c.nombre }}</span>
+          <div class="d-lg-none small text-muted mt-1"><span class="d-md-none">{{ c.categoria.etiqueta }} · </span>{{ c.descripcion|truncatewords:18 }}</div></td>
+        <td class="text-nowrap d-none d-md-table-cell">{{ c.categoria.etiqueta }}</td>
+        <td class="small text-muted d-none d-lg-table-cell">{{ c.descripcion }}</td>{% if es_admin %}<td class="text-nowrap"><a class="btn btn-outline-secondary btn-sm" href="{% url 'control_editar' c.id %}" aria-label="Editar {{ c.codigo }}"><i class="bi bi-pencil" aria-hidden="true"></i></a> <a class="btn btn-outline-secondary btn-sm" href="{% url 'control_eliminar' c.id %}" aria-label="Eliminar {{ c.codigo }}"><i class="bi bi-trash" aria-hidden="true"></i></a></td>{% endif %}</tr>
     {% endfor %}</tbody>
   </table></div>
 </div>

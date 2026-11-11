@@ -5,6 +5,8 @@ from .models import ControlModel
 
 admin.site.site_header = "DRAKON · Administración"
 admin.site.site_title = "DRAKON"
+admin.site.index_title = "Usuarios, roles y catálogo"
+admin.site.site_url = "/"
 
 
 @admin.register(ControlModel)

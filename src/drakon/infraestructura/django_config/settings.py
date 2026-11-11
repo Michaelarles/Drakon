@@ -51,7 +51,8 @@ WSGI_APPLICATION = "drakon.infraestructura.django_config.wsgi.application"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        # Primero las plantillas de DRAKON, para personalizar también el admin de Django
+        "DIRS": [INFRA_DIR / "web" / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

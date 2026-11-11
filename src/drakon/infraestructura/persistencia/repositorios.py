@@ -145,7 +145,7 @@ class RepositorioAuditoriasDjango:
 class RepositorioCatalogoDjango:
     def listar(self, categoria: CategoriaControl | None = None, texto: str | None = None) -> list[Control]:
         qs = ControlModel.objects.all()
-        if categoria:
+        if categoria in {c.value for c in CategoriaControl} or isinstance(categoria, CategoriaControl):
             qs = qs.filter(categoria=CategoriaControl(categoria).value)
         if texto:
             qs = qs.filter(Q(codigo_iso__icontains=texto) | Q(nombre__icontains=texto)
