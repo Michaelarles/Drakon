@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # DRAKON
 
 ![Drakon](src/drakon/infraestructura/web/static/drakon/avatar/logo_completo.png)
@@ -120,3 +121,7 @@ Ninguna eliminación ocurre con un GET: siempre hay una página de confirmación
 | RF09 Dashboard | ✅ | ✅ |
 
 > Los indicadores son descriptivos: no constituyen certificación ni sustituyen el juicio profesional del auditor. Todos los datos de Empresa ABC son ficticios.
+=======
+# Drakon
+Software de auditoria de sistemas
+>>>>>>> 3267b94fcdebf07d6177eef3be30147c9f4ffa49
