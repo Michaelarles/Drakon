@@ -4,6 +4,7 @@ from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView
 from django.core.exceptions import PermissionDenied
 from django.db import connection
 from django.http import Http404, HttpResponse, JsonResponse
@@ -27,6 +28,19 @@ from .forms import (
     HallazgoForm,
     RecomendacionForm,
 )
+
+
+# ------------------------------------------------------------------ ingreso
+class IngresoView(LoginView):
+    """Inicio de sesión. Sin «Recordarme», la sesión termina al cerrar el navegador."""
+
+    template_name = "drakon/login.html"
+
+    def form_valid(self, form):
+        respuesta = super().form_valid(form)
+        if not self.request.POST.get("recordarme"):
+            self.request.session.set_expiry(0)
+        return respuesta
 
 
 # ------------------------------------------------------------------ roles

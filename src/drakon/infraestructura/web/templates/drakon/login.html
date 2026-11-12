@@ -1,24 +1,139 @@
 {% extends "drakon/base.html" %}{% load static %}
 {% block titulo %}Ingresar{% endblock %}
+{% block estilos %}<link href="{% static 'drakon/login.css' %}" rel="stylesheet">{% endblock %}
 {% block publico %}
-<main class="login">
-  <div class="tarjeta">
-    <img class="drakon" src="{% static 'drakon/avatar/bienvenida.png' %}" alt="">
-    <img src="{% static 'drakon/avatar/logo_completo.png' %}" alt="DRAKON" style="height:38px" class="d-block mx-auto mt-2">
-    <p class="text-muted small mt-2 mb-4">Sistema de gestión de auditorías de sistemas de información</p>
-    {% if form.errors %}<div class="alert alert-danger py-2 text-start"><img src="{% static 'drakon/avatar/error.png' %}" alt=""><div>Usuario o contraseña incorrectos.</div></div>{% endif %}
-    <form method="post" class="text-start">{% csrf_token %}
-      <div class="mb-3">
-        <label class="form-label requerido" for="id_username">Usuario</label>
-        <input class="form-control" name="username" id="id_username" autocomplete="username" required autofocus value="{{ form.username.value|default:'' }}">
+<div class="dk-login" id="dk-login">
+
+  {# ---------- Escena: el dragón escupe fuego y el fuego llena la mitad derecha ---------- #}
+  <div class="dk-escena" aria-hidden="true">
+    <div class="dk-fuego">
+      <svg width="3400" height="2700" viewBox="0 -900 3400 2700" focusable="false">
+          <g transform="translate(-40 -900)">
+            <path fill="#E84932" d="M3400,0 L860,0 C800,40 850,90 790,130 C730,170 800,210 760,250 C700,300 780,330 740,380 C690,440 790,470 750,520 C700,580 790,610 760,660 C720,720 810,760 780,810 C760,850 800,880 820,900 L3400,900 Z"/>
+            <path fill="#F47721" d="M3400,0 L905,0 C855,45 900,95 845,140 C795,180 855,215 815,262 C770,310 835,335 800,385 C760,440 845,470 810,525 C770,585 850,615 820,665 C790,720 860,760 840,810 C825,850 855,880 870,900 L3400,900 Z"/>
+          </g>
+          <g transform="translate(-40 0)">
+            <path fill="#E84932" d="M3400,0 L860,0 C800,40 850,90 790,130 C730,170 800,210 760,250 C700,300 780,330 740,380 C690,440 790,470 750,520 C700,580 790,610 760,660 C720,720 810,760 780,810 C760,850 800,880 820,900 L3400,900 Z"/>
+            <path fill="#F47721" d="M3400,0 L905,0 C855,45 900,95 845,140 C795,180 855,215 815,262 C770,310 835,335 800,385 C760,440 845,470 810,525 C770,585 850,615 820,665 C790,720 860,760 840,810 C825,850 855,880 870,900 L3400,900 Z"/>
+          </g>
+          <g transform="translate(-40 900)">
+            <path fill="#E84932" d="M3400,0 L860,0 C800,40 850,90 790,130 C730,170 800,210 760,250 C700,300 780,330 740,380 C690,440 790,470 750,520 C700,580 790,610 760,660 C720,720 810,760 780,810 C760,850 800,880 820,900 L3400,900 Z"/>
+            <path fill="#F47721" d="M3400,0 L905,0 C855,45 900,95 845,140 C795,180 855,215 815,262 C770,310 835,335 800,385 C760,440 845,470 810,525 C770,585 850,615 820,665 C790,720 860,760 840,810 C825,850 855,880 870,900 L3400,900 Z"/>
+          </g>
+          <g transform="translate(-40 0)">
+            <path class="dk-lengua" fill="#FFB84D" d="M940,112 C885,122 872,160 836,168 C872,176 890,194 945,188 Z"/>
+            <path class="dk-lengua d2" fill="#FFB84D" d="M905,600 C852,606 836,644 804,651 C840,659 862,676 910,668 Z"/>
+            <path class="dk-lengua d3" fill="#FFB84D" d="M925,760 C876,768 862,798 834,806 C866,813 886,828 930,821 Z"/>
+          </g>
+          <circle class="dk-brasa" cx="790" cy="720" r="3.5" fill="#FFB84D"/>
+          <circle class="dk-brasa e2" cx="770" cy="580" r="2.5" fill="#E84932"/>
+          <circle class="dk-brasa e3" cx="820" cy="280" r="3" fill="#FFB84D"/>
+          <circle class="dk-brasa e4" cx="1360" cy="760" r="2.5" fill="#FFB84D"/>
+      </svg>
+    </div>
+
+    <img class="dk-nombre" src="{% static 'drakon/avatar/logo_nombre.png' %}" alt="">
+
+    <div class="dk-dragon-pos">
+      <div class="dk-dragon">
+        <svg class="dk-chorro" viewBox="-10 -120 280 260" focusable="false">
+          <defs>
+            <linearGradient id="dk-desvanece" x1="-10" y1="0" x2="305" y2="0" gradientUnits="userSpaceOnUse">
+              <stop offset="0.6" stop-color="#fff"/><stop offset="1" stop-color="#000"/>
+            </linearGradient>
+            <mask id="dk-mascara" maskUnits="userSpaceOnUse" x="-10" y="-130" width="330" height="280">
+              <rect x="-10" y="-130" width="330" height="280" fill="url(#dk-desvanece)"/>
+            </mask>
+          </defs>
+          <g mask="url(#dk-mascara)">
+          <path class="dk-llama d2" fill="#E84932" d="M0,0 C30,-14 70,-40 120,-52 C112,-72 122,-92 146,-104 C140,-78 160,-62 300,-74 L300,96 C200,92 175,104 182,130 C156,116 150,96 156,80 C100,66 40,30 0,10 Z"/>
+          <path class="dk-llama" fill="#F47721" d="M2,2 C40,-8 90,-24 150,-28 C142,-42 148,-56 165,-66 C166,-44 190,-30 302,-34 L302,56 C215,54 196,64 198,82 C178,72 172,60 176,48 C110,40 50,22 2,8 Z"/>
+          <path class="dk-llama d3" fill="#FFB84D" d="M6,3 C70,-4 150,-6 290,-2 L290,18 C150,22 70,16 6,8 Z"/>
+          </g>
+        </svg>
+        <img src="{% static 'drakon/avatar/dragon_hd.png' %}" alt="">
       </div>
-      <div class="mb-4">
-        <label class="form-label requerido" for="id_password">Contraseña</label>
-        <input class="form-control" type="password" name="password" id="id_password" autocomplete="current-password" required>
-      </div>
-      <input type="hidden" name="next" value="{{ next }}">
-      <button class="btn btn-primary w-100">Ingresar</button>
-    </form>
+    </div>
   </div>
-</main>
+
+  {# ---------- Cabecera para pantallas pequeñas ---------- #}
+  <div class="dk-movil" aria-hidden="true">
+    <div class="dk-movil-marca">
+      <img class="nombre" src="{% static 'drakon/avatar/logo_nombre.png' %}" alt="">
+      <img class="dragon" src="{% static 'drakon/avatar/dragon_hd.png' %}" alt="">
+    </div>
+    <svg viewBox="0 0 400 40" preserveAspectRatio="none" focusable="false">
+      <path fill="#E84932" d="M0,40 L0,22 C30,10 50,30 80,18 C110,6 130,28 160,16 C190,4 210,26 240,14 C270,2 290,26 320,16 C350,6 375,24 400,14 L400,40 Z"/>
+      <path fill="#F47721" d="M0,40 L0,30 C30,20 50,36 80,28 C110,20 130,36 160,26 C190,16 210,34 240,24 C270,14 290,34 320,26 C350,18 375,32 400,24 L400,40 Z"/>
+    </svg>
+  </div>
+
+  {# ---------- Formulario sobre el fuego ---------- #}
+  <div class="dk-panel">
+    <main class="dk-tarjeta">
+      <span class="dk-sello">ISO/IEC 27002:2022</span>
+      <div>
+        <h1>Ingresa a DRAKON</h1>
+        <p class="dk-sub">Continúa tus auditorías donde las dejaste.</p>
+      </div>
+      {% if form.errors %}
+      <p class="dk-error" role="alert"><i class="bi bi-exclamation-circle" aria-hidden="true"></i> Usuario o contraseña incorrectos.</p>
+      {% endif %}
+      <form method="post" class="dk-form">{% csrf_token %}
+        <div class="dk-campo">
+          <label for="id_username">Usuario</label>
+          <input name="username" id="id_username" autocomplete="username" required autofocus value="{{ form.username.value|default:'' }}">
+        </div>
+        <div class="dk-campo">
+          <label for="id_password">Contraseña</label>
+          <div class="dk-clave">
+            <input type="password" name="password" id="id_password" autocomplete="current-password" required>
+            <button type="button" class="dk-ver" id="dk-ver" aria-controls="id_password" aria-label="Mostrar contraseña">Mostrar</button>
+          </div>
+        </div>
+        <div class="dk-fila">
+          <label class="dk-check"><input type="checkbox" name="recordarme" value="1"> Recordarme</label>
+          <button type="button" class="dk-enlace" id="dk-olvido" aria-expanded="false" aria-controls="dk-nota-olvido">¿Olvidaste tu contraseña?</button>
+        </div>
+        <p class="dk-nota" id="dk-nota-olvido" hidden>Pide al administrador de DRAKON que restablezca tu contraseña.</p>
+        <input type="hidden" name="next" value="{{ next }}">
+        <button type="submit" class="dk-entrar">Ingresar <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+      </form>
+      <p class="dk-acceso">¿Aún no tienes acceso? Solicítalo al administrador.</p>
+    </main>
+  </div>
+
+  <footer class="dk-pie">
+    <b>Sistema de gestión de auditorías</b>
+    Auditoría de sistemas de información · ISO/IEC 27002:2022
+  </footer>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  var raiz = document.getElementById('dk-login');
+  function escalar() {
+    var s = Math.min(window.innerWidth / 1440, window.innerHeight / 900);
+    raiz.style.setProperty('--s', Math.max(0.6, Math.min(s, 1.3)).toFixed(4));
+  }
+  escalar();
+  window.addEventListener('resize', escalar);
+
+  var ver = document.getElementById('dk-ver'), clave = document.getElementById('id_password');
+  ver.addEventListener('click', function () {
+    var mostrar = clave.type === 'password';
+    clave.type = mostrar ? 'text' : 'password';
+    ver.textContent = mostrar ? 'Ocultar' : 'Mostrar';
+    ver.setAttribute('aria-label', mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
+  });
+
+  var olvido = document.getElementById('dk-olvido'), nota = document.getElementById('dk-nota-olvido');
+  olvido.addEventListener('click', function () {
+    var abrir = nota.hidden;
+    nota.hidden = !abrir;
+    olvido.setAttribute('aria-expanded', abrir ? 'true' : 'false');
+  });
+})();
+</script>
 {% endblock %}

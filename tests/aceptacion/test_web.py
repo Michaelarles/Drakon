@@ -127,3 +127,29 @@ def test_admin_con_identidad_drakon(client):
     client.force_login(admin)
     html = client.get("/admin/").content.decode()
     assert "Volver a DRAKON" in html and "#F47721" in html and "dark_mode.css" not in html
+
+
+def test_login_muestra_escena_del_dragon(client):
+    r = client.get(reverse("login"))
+    html = r.content.decode()
+    assert r.status_code == 200
+    assert "Ingresa a DRAKON" in html and "dragon_hd.png" in html and "login.css" in html
+
+
+def test_login_sin_recordarme_expira_al_cerrar_navegador(client):
+    get_user_model().objects.create_user("leo", password="Clave-segura-1")
+    r = client.post(reverse("login"), {"username": "leo", "password": "Clave-segura-1"})
+    assert r.status_code == 302
+    assert client.session.get_expire_at_browser_close()
+
+
+def test_login_con_recordarme_mantiene_la_sesion(client):
+    get_user_model().objects.create_user("eva", password="Clave-segura-1")
+    r = client.post(reverse("login"), {"username": "eva", "password": "Clave-segura-1", "recordarme": "1"})
+    assert r.status_code == 302
+    assert not client.session.get_expire_at_browser_close()
+
+
+def test_login_credenciales_invalidas(client):
+    r = client.post(reverse("login"), {"username": "nadie", "password": "x"})
+    assert r.status_code == 200 and "Usuario o contraseña incorrectos" in r.content.decode()

@@ -1,0 +1,164 @@
+/* ==========================================================================
+   DRAKON · Inicio de sesión
+   El dragón del logo escupe fuego; el fuego llena la mitad derecha y sobre
+   él aparece el formulario. La escena se dibuja sobre un lienzo fijo de
+   1440×900 que se escala al tamaño de la ventana (--s, ver login.html).
+   ========================================================================== */
+
+.dk-login{
+  --s:1;
+  position:fixed; inset:0; overflow:hidden;
+  background:#FFFFFF; color:var(--carbon);
+  font-family:"Plus Jakarta Sans", system-ui, sans-serif;
+}
+
+/* ---------- Escena escalable ---------- */
+.dk-escena{
+  position:absolute; left:50%; top:50%;
+  width:1440px; height:900px;
+  transform:translate(-50%,-50%) scale(var(--s));
+  transform-origin:50% 50%;
+  pointer-events:none;
+}
+.dk-fuego{position:absolute; left:0; top:-900px; width:3400px; height:2700px; z-index:2}
+.dk-fuego svg{display:block}
+.dk-nombre{position:absolute; left:132px; top:423px; width:234px; height:auto; display:block}
+.dk-dragon-pos{position:absolute; left:392px; top:358px; width:200px; height:183px}
+.dk-dragon{position:relative; width:200px; height:183px}
+.dk-dragon img{position:absolute; left:0; top:0; width:200px; height:183px; display:block}
+.dk-chorro{position:absolute; left:187px; top:0; width:196px; height:182px; overflow:visible}
+
+/* ---------- Formulario (fuera de la escena: no se escala) ---------- */
+.dk-panel{
+  position:absolute; top:50%;
+  left:calc(50% + 360px * var(--s));
+  transform:translate(-50%,-50%);
+  width:400px; max-width:calc(100vw - 32px);
+}
+.dk-tarjeta{
+  background:#FFFFFF; border-radius:24px; padding:40px;
+  box-shadow:0 30px 60px -20px rgba(120,30,10,.45);
+  display:flex; flex-direction:column; gap:22px;
+}
+.dk-sello{
+  align-self:flex-start; background:var(--durazno); color:var(--ember);
+  border-radius:999px; padding:6px 12px; font-size:12px; font-weight:700; letter-spacing:.04em;
+}
+.dk-tarjeta h1{margin:0; font-size:30px; font-weight:800; letter-spacing:-.01em}
+.dk-tarjeta .dk-sub{margin:8px 0 0; font-size:15px; color:#5E5750; line-height:1.5}
+.dk-form{display:flex; flex-direction:column; gap:16px; margin:0}
+.dk-campo{display:flex; flex-direction:column; gap:6px}
+.dk-campo label{font-size:13px; font-weight:700}
+.dk-campo input{
+  height:48px; box-sizing:border-box; padding:0 14px; width:100%;
+  border:1.5px solid #D9D1C6; border-radius:12px; background:var(--blanco);
+  font:inherit; font-size:15px; color:var(--carbon);
+}
+.dk-campo input:focus{outline:none; border-color:var(--naranja); box-shadow:0 0 0 4px rgba(244,119,33,.18)}
+.dk-clave{position:relative}
+.dk-clave input{padding-right:92px}
+.dk-ver{
+  position:absolute; right:4px; top:2px; height:44px; padding:0 12px;
+  border:0; background:transparent; color:var(--ember);
+  font:inherit; font-size:13px; font-weight:700; cursor:pointer;
+}
+.dk-fila{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap}
+.dk-check{display:inline-flex; align-items:center; gap:8px; font-size:13px; min-height:44px; cursor:pointer; margin:0}
+.dk-check input{width:18px; height:18px; accent-color:var(--naranja); margin:0}
+.dk-enlace{
+  border:0; background:none; padding:0; min-height:44px;
+  color:var(--ember); font:inherit; font-size:13px; font-weight:600;
+  text-decoration:underline; text-underline-offset:2px; cursor:pointer;
+}
+.dk-enlace:hover{color:#8A3E12}
+.dk-nota{margin:-6px 0 0; padding:10px 12px; border-radius:12px; background:var(--durazno); font-size:13px; line-height:1.45}
+.dk-entrar{
+  height:52px; border:0; border-radius:14px; background:var(--naranja); color:var(--carbon);
+  font:inherit; font-size:16px; font-weight:800; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center; gap:10px;
+}
+.dk-entrar:hover{background:#FF8A3A}
+.dk-acceso{border-top:1px solid var(--sand); padding-top:18px; font-size:13px; color:#5E5750; text-align:center; margin:0}
+.dk-error{display:flex; gap:10px; align-items:flex-start; margin:0; padding:10px 12px; border-radius:12px;
+  background:#FCE3DF; color:#A8321F; font-size:13px; font-weight:600}
+.dk-login button:focus-visible,.dk-login a:focus-visible{outline:3px solid var(--carbon); outline-offset:2px}
+
+/* ---------- Pie ---------- */
+.dk-pie{position:absolute; bottom:40px; left:calc(50% - 588px * var(--s)); font-size:13px; color:#5E5750; max-width:45vw}
+.dk-pie b{display:block; font-size:15px; color:var(--carbon); margin-bottom:4px}
+
+/* ---------- Cabecera móvil (oculta en escritorio) ---------- */
+.dk-movil{display:none}
+
+/* ==========================================================================
+   Animación (≈2,5 s)
+   ========================================================================== */
+.dk-nombre{animation:dk-nombre .6s ease-out both}
+@keyframes dk-nombre{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
+
+.dk-dragon{transform-origin:30% 60%; animation:dk-dragon 1.6s cubic-bezier(.3,.7,.3,1) .1s both}
+@keyframes dk-dragon{
+  0%{opacity:0;transform:translateY(30px) scale(.9)}
+  20%{opacity:1;transform:none}
+  36%{transform:translateX(-18px) rotate(-6deg) scale(1.02)}
+  48%{transform:translateX(14px) rotate(3deg)}
+  62%{transform:translateX(6px) rotate(1deg)}
+  100%{transform:none}
+}
+.dk-dragon-pos{animation:dk-respira 2.6s ease-in-out 1.8s infinite alternate}
+@keyframes dk-respira{from{transform:translateY(0)}to{transform:translateY(-4px)}}
+
+.dk-chorro{transform-origin:7px 84px; animation:dk-chorro .55s cubic-bezier(.2,.8,.2,1) .72s both}
+@keyframes dk-chorro{
+  0%{opacity:0;transform:scaleX(0) scaleY(.2)}
+  35%{opacity:1}
+  100%{opacity:1;transform:none}
+}
+
+.dk-fuego{animation:dk-fuego 1.1s cubic-bezier(.55,.05,.25,1) 1.02s both}
+@keyframes dk-fuego{
+  from{clip-path:circle(0px at 586px 1342px)}
+  to{clip-path:circle(3600px at 586px 1342px)}
+}
+
+.dk-llama{transform-box:fill-box; transform-origin:0% 50%; animation:dk-llama 1.3s ease-in-out infinite alternate}
+.dk-lengua{transform-box:fill-box; transform-origin:100% 50%; animation:dk-llama 1.4s ease-in-out infinite alternate}
+.dk-llama.d2,.dk-lengua.d2{animation-duration:1.75s; animation-delay:.3s}
+.dk-llama.d3,.dk-lengua.d3{animation-duration:1.05s; animation-delay:.6s}
+@keyframes dk-llama{from{transform:scaleX(1) skewY(0)}to{transform:scaleX(1.08) skewY(-2deg)}}
+
+.dk-brasa{animation:dk-brasa 3.4s ease-in infinite}
+.dk-brasa.e2{animation-delay:1.1s; animation-duration:4s}
+.dk-brasa.e3{animation-delay:2s; animation-duration:3s}
+.dk-brasa.e4{animation-delay:.5s; animation-duration:4.4s}
+@keyframes dk-brasa{
+  0%{opacity:0;transform:translate(0,0)}
+  15%{opacity:1}
+  100%{opacity:0;transform:translate(40px,-160px)}
+}
+
+.dk-tarjeta{animation:dk-tarjeta .6s cubic-bezier(.2,.8,.2,1) 1.95s both}
+.dk-pie{animation:dk-nombre .6s ease-out 2.1s both}
+@keyframes dk-tarjeta{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+@media (prefers-reduced-motion: reduce){
+  .dk-login *{animation:none !important}
+}
+
+/* ==========================================================================
+   Pantallas pequeñas: dragón arriba, fuego abajo con el formulario
+   ========================================================================== */
+@media (max-width: 860px), (max-height: 540px){
+  .dk-login{position:static; min-height:100vh; overflow:visible; background:var(--naranja);
+    display:flex; flex-direction:column}
+  .dk-escena{display:none}
+  .dk-movil{display:block; position:relative; background:#FFFFFF; padding:28px 20px 56px}
+  .dk-movil-marca{display:flex; align-items:center; justify-content:center; gap:14px}
+  .dk-movil-marca .nombre{width:150px; height:auto}
+  .dk-movil-marca .dragon{width:96px; height:auto; animation:dk-dragon 1.6s cubic-bezier(.3,.7,.3,1) .1s both}
+  .dk-movil svg{position:absolute; left:0; bottom:-1px; width:100%; height:40px; display:block}
+  .dk-panel{position:static; transform:none; width:auto; max-width:440px; margin:8px auto 24px; padding:0 16px; box-sizing:content-box}
+  .dk-tarjeta{padding:28px 24px; animation-delay:.4s}
+  .dk-tarjeta h1{font-size:26px}
+  .dk-pie{position:static; max-width:none; text-align:center; color:var(--carbon) !important; margin:auto 16px 24px; animation:none}
+}
