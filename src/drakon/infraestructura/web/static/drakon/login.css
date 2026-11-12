@@ -31,7 +31,8 @@
 /* ---------- Formulario (fuera de la escena: no se escala) ---------- */
 .dk-panel{
   position:absolute; top:50%;
-  left:calc(50% + 360px * var(--s));
+  /* centro de la zona naranja: entre el borde del fuego (≈50% + 60px·s) y el borde derecho */
+  left:calc(75% + 30px * var(--s));
   transform:translate(-50%,-50%);
   width:400px; max-width:calc(100vw - 32px);
 }
