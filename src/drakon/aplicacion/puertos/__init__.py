@@ -1,4 +1,5 @@
 """Puertos de salida: interfaces que el núcleo necesita y la infraestructura implementa."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -54,7 +55,7 @@ class RepositorioInformes(Protocol):
 @dataclass(frozen=True)
 class ArchivoAdjunto:
     nombre: str
-    tipo: str          # tipo MIME
+    tipo: str  # tipo MIME
     contenido: bytes
 
 

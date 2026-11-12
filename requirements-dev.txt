@@ -1,4 +1,6 @@
 -r requirements.txt
 pytest
 pytest-django
+pytest-cov
 import-linter
+ruff

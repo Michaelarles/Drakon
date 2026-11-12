@@ -7,6 +7,7 @@ Fórmulas documentadas:
 Si no hay controles aplicables, el indicador es None («sin datos»).
 El indicador es descriptivo: no constituye certificación.
 """
+
 from __future__ import annotations
 
 from collections import Counter
@@ -20,8 +21,7 @@ PESO_PARCIAL = 0.5
 FORMULA_BASE = "Implementados / aplicables × 100"
 FORMULA_PONDERADA = "(Implementados + 0,5 × parciales) / aplicables × 100"
 ADVERTENCIA = (
-    "El indicador es descriptivo y no constituye certificación ni sustituye "
-    "el juicio profesional del auditor."
+    "El indicador es descriptivo y no constituye certificación ni sustituye el juicio profesional del auditor."
 )
 
 

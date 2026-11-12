@@ -1,4 +1,5 @@
 """Agregado Control: catálogo de controles ISO/IEC 27002:2022."""
+
 from dataclasses import dataclass
 
 from .errores import DatoInvalido

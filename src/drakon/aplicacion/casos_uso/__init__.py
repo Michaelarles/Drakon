@@ -3,10 +3,11 @@
 Orquestan: cargar agregado → invocar reglas del dominio → persistir.
 No conocen Django ni la base de datos: solo los puertos.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 from drakon.aplicacion.puertos import (
     AlmacenEvidencias,
@@ -47,8 +48,13 @@ class CrearAuditoria:
 
     def ejecutar(self, datos: DatosAuditoria, id_auditor: int) -> Auditoria:
         auditoria = Auditoria.crear(
-            datos.organizacion, datos.objetivo, datos.alcance,
-            datos.fecha_inicio, datos.fecha_fin, id_auditor, datos.referentes,
+            datos.organizacion,
+            datos.objetivo,
+            datos.alcance,
+            datos.fecha_inicio,
+            datos.fecha_fin,
+            id_auditor,
+            datos.referentes,
         )
         return self.auditorias.guardar(auditoria)
 
@@ -59,8 +65,9 @@ class ActualizarAuditoria:
 
     def ejecutar(self, id_auditoria: int, datos: DatosAuditoria) -> Auditoria:
         a = self.auditorias.obtener(id_auditoria)
-        a.actualizar_datos(datos.organizacion, datos.objetivo, datos.alcance,
-                           datos.fecha_inicio, datos.fecha_fin, datos.referentes)
+        a.actualizar_datos(
+            datos.organizacion, datos.objetivo, datos.alcance, datos.fecha_inicio, datos.fecha_fin, datos.referentes
+        )
         return self.auditorias.guardar(a)
 
 
@@ -117,13 +124,14 @@ class EvaluarControl:
     def __init__(self, auditorias: RepositorioAuditorias):
         self.auditorias = auditorias
 
-    def ejecutar(self, id_auditoria: int, id_control: int, estado: str,
-                 observacion: str, justificacion_na: str = "") -> Auditoria:
+    def ejecutar(
+        self, id_auditoria: int, id_control: int, estado: str, observacion: str, justificacion_na: str = ""
+    ) -> Auditoria:
         a = self.auditorias.obtener(id_auditoria)
         try:
             estado = EstadoEvaluacion(estado)
         except ValueError:
-            raise DatoInvalido("Seleccione uno de los cuatro estados de evaluación.", "estado")
+            raise DatoInvalido("Seleccione uno de los cuatro estados de evaluación.", "estado") from None
         a.evaluar_control(id_control, estado, observacion, justificacion_na)
         return self.auditorias.guardar(a)
 
@@ -149,14 +157,28 @@ class RegistrarEvidencia:
         if datos.archivo is not None:
             self._validar_archivo(datos.archivo)
         # Valida en el dominio antes de guardar el archivo, para no dejar archivos huérfanos.
-        a.validar_evidencia(id_control, datos.descripcion, datos.fuente, datos.fecha,
-                            datos.es_simulada, datos.referencia,
-                            "provisional" if datos.archivo else None)
+        a.validar_evidencia(
+            id_control,
+            datos.descripcion,
+            datos.fuente,
+            datos.fecha,
+            datos.es_simulada,
+            datos.referencia,
+            "provisional" if datos.archivo else None,
+        )
         if datos.archivo is not None:
             archivo_id = self.almacen.guardar(datos.archivo)
             archivo_nombre = datos.archivo.nombre
-        evidencia = a.registrar_evidencia(id_control, datos.descripcion, datos.fuente, datos.fecha,
-                                          datos.es_simulada, datos.referencia, archivo_id, archivo_nombre)
+        evidencia = a.registrar_evidencia(
+            id_control,
+            datos.descripcion,
+            datos.fuente,
+            datos.fecha,
+            datos.es_simulada,
+            datos.referencia,
+            archivo_id,
+            archivo_nombre,
+        )
         self.auditorias.guardar(a)
         return evidencia
 
@@ -190,8 +212,9 @@ class EditarEvidencia:
 
     def ejecutar(self, id_auditoria: int, codigo: str, datos: DatosEvidencia) -> Evidencia:
         a = self.auditorias.obtener(id_auditoria)
-        e = a.editar_evidencia(codigo, datos.descripcion, datos.fuente, datos.fecha,
-                               datos.es_simulada, datos.referencia)
+        e = a.editar_evidencia(
+            codigo, datos.descripcion, datos.fuente, datos.fecha, datos.es_simulada, datos.referencia
+        )
         self.auditorias.guardar(a)
         return e
 
@@ -228,9 +251,17 @@ class RegistrarHallazgo:
 
     def ejecutar(self, id_auditoria: int, datos: DatosHallazgo) -> Hallazgo:
         a = self.auditorias.obtener(id_auditoria)
-        h = a.registrar_hallazgo(datos.id_control, datos.condicion, datos.criterio, datos.causa,
-                                 datos.efecto, datos.severidad, datos.recomendacion,
-                                 datos.prioridad, datos.plazo_dias)
+        h = a.registrar_hallazgo(
+            datos.id_control,
+            datos.condicion,
+            datos.criterio,
+            datos.causa,
+            datos.efecto,
+            datos.severidad,
+            datos.recomendacion,
+            datos.prioridad,
+            datos.plazo_dias,
+        )
         self.auditorias.guardar(a)
         return h
 
@@ -239,8 +270,9 @@ class AgregarRecomendacion:
     def __init__(self, auditorias: RepositorioAuditorias):
         self.auditorias = auditorias
 
-    def ejecutar(self, id_auditoria: int, codigo_hallazgo: str, descripcion: str,
-                 prioridad: str, plazo_dias: int | None):
+    def ejecutar(
+        self, id_auditoria: int, codigo_hallazgo: str, descripcion: str, prioridad: str, plazo_dias: int | None
+    ):
         a = self.auditorias.obtener(id_auditoria)
         r = a.agregar_recomendacion(codigo_hallazgo, descripcion, prioridad, plazo_dias)
         self.auditorias.guardar(a)
@@ -253,8 +285,9 @@ class EditarHallazgo:
 
     def ejecutar(self, id_auditoria: int, codigo: str, datos: DatosHallazgo) -> Hallazgo:
         a = self.auditorias.obtener(id_auditoria)
-        h = a.editar_hallazgo(codigo, datos.id_control, datos.condicion, datos.criterio,
-                              datos.causa, datos.efecto, datos.severidad)
+        h = a.editar_hallazgo(
+            codigo, datos.id_control, datos.condicion, datos.criterio, datos.causa, datos.efecto, datos.severidad
+        )
         self.auditorias.guardar(a)
         return h
 
@@ -274,8 +307,9 @@ class EditarRecomendacion:
     def __init__(self, auditorias: RepositorioAuditorias):
         self.auditorias = auditorias
 
-    def ejecutar(self, id_auditoria: int, codigo: str, descripcion: str, prioridad: str,
-                 plazo_dias: int | None) -> Recomendacion:
+    def ejecutar(
+        self, id_auditoria: int, codigo: str, descripcion: str, prioridad: str, plazo_dias: int | None
+    ) -> Recomendacion:
         a = self.auditorias.obtener(id_auditoria)
         r = a.editar_recomendacion(codigo, descripcion, prioridad, plazo_dias)
         self.auditorias.guardar(a)
@@ -312,9 +346,10 @@ class GuardarControl:
         try:
             categoria = CategoriaControl(datos.categoria)
         except ValueError:
-            raise DatoInvalido("Seleccione la categoría del control.", "categoria")
-        control = Control(codigo=datos.codigo, nombre=datos.nombre, categoria=categoria,
-                          descripcion=datos.descripcion, id=id_control)
+            raise DatoInvalido("Seleccione la categoría del control.", "categoria") from None
+        control = Control(
+            codigo=datos.codigo, nombre=datos.nombre, categoria=categoria, descripcion=datos.descripcion, id=id_control
+        )
         if id_control is not None:
             self.catalogo.obtener(id_control)  # NoEncontrado si no existe
         if self.catalogo.existe_codigo(control.codigo, excluir_id=id_control):
@@ -330,7 +365,8 @@ class EliminarControl:
         control = self.catalogo.obtener(id_control)
         if self.catalogo.en_uso(id_control):
             raise ReglaDeNegocioViolada(
-                f"El control {control.codigo} está seleccionado en al menos una auditoría y no se puede eliminar.")
+                f"El control {control.codigo} está seleccionado en al menos una auditoría y no se puede eliminar."
+            )
         self.catalogo.eliminar(id_control)
         return control
 
@@ -345,8 +381,13 @@ class ConsultarIndicadores:
 
 
 class GenerarInforme:
-    def __init__(self, auditorias: RepositorioAuditorias, catalogo: RepositorioCatalogo,
-                 informes: RepositorioInformes, usuarios: DirectorioUsuarios):
+    def __init__(
+        self,
+        auditorias: RepositorioAuditorias,
+        catalogo: RepositorioCatalogo,
+        informes: RepositorioInformes,
+        usuarios: DirectorioUsuarios,
+    ):
         self.auditorias, self.catalogo = auditorias, catalogo
         self.informes, self.usuarios = informes, usuarios
 
@@ -359,8 +400,9 @@ class GenerarInforme:
         version = self.informes.ultima_version(id_auditoria) + 1
         contenido["version"] = version
         contenido["preliminar"] = a.estado != EstadoAuditoria.CERRADA
-        informe = Informe(id_auditoria=id_auditoria, version=version,
-                          fecha_generacion=datetime.now(timezone.utc), contenido=contenido)
+        informe = Informe(
+            id_auditoria=id_auditoria, version=version, fecha_generacion=datetime.now(UTC), contenido=contenido
+        )
         return self.informes.guardar(informe)
 
 
@@ -412,18 +454,43 @@ class ConsultarDashboard:
         evaluaciones = [e for a in auditorias for e in a.evaluaciones]
         controles = self.catalogo.obtener_varios(list({e.id_control for e in evaluaciones}))
         return [
-            (cat, CalculadoraIndicadores.calcular(
-                [e for e in evaluaciones if e.id_control in controles and controles[e.id_control].categoria == cat]))
+            (
+                cat,
+                CalculadoraIndicadores.calcular(
+                    [e for e in evaluaciones if e.id_control in controles and controles[e.id_control].categoria == cat]
+                ),
+            )
             for cat in CategoriaControl
         ]
 
 
 __all__ = [
-    "CrearAuditoria", "ActualizarAuditoria", "SeleccionarControles", "CambiarEstadoAuditoria",
-    "EvaluarControl", "RegistrarEvidencia", "EliminarEvidencia", "ObtenerArchivoEvidencia",
-    "RegistrarHallazgo", "AgregarRecomendacion", "ConsultarIndicadores", "GenerarInforme",
-    "DescargarInformePDF", "ConsultarDashboard", "EliminarAuditoria", "EditarEvidencia", "EditarHallazgo",
-    "EliminarHallazgo", "EditarRecomendacion", "EliminarRecomendacion", "GuardarControl", "EliminarControl",
-    "DatosControl", "DatosAuditoria", "DatosEvidencia", "DatosHallazgo",
-    "Prioridad", "Severidad",
+    "CrearAuditoria",
+    "ActualizarAuditoria",
+    "SeleccionarControles",
+    "CambiarEstadoAuditoria",
+    "EvaluarControl",
+    "RegistrarEvidencia",
+    "EliminarEvidencia",
+    "ObtenerArchivoEvidencia",
+    "RegistrarHallazgo",
+    "AgregarRecomendacion",
+    "ConsultarIndicadores",
+    "GenerarInforme",
+    "DescargarInformePDF",
+    "ConsultarDashboard",
+    "EliminarAuditoria",
+    "EditarEvidencia",
+    "EditarHallazgo",
+    "EliminarHallazgo",
+    "EditarRecomendacion",
+    "EliminarRecomendacion",
+    "GuardarControl",
+    "EliminarControl",
+    "DatosControl",
+    "DatosAuditoria",
+    "DatosEvidencia",
+    "DatosHallazgo",
+    "Prioridad",
+    "Severidad",
 ]

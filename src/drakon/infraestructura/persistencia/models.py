@@ -4,20 +4,33 @@ Las restricciones CHECK, UNIQUE y las llaves foráneas replican en PostgreSQL la
 reglas del dominio que la base de datos puede garantizar (defensa en profundidad).
 Estos modelos NO son el dominio: los repositorios traducen entre ambos.
 """
+
 import uuid
 
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
 
-ESTADOS_AUDITORIA = [("BORRADOR", "Borrador"), ("EN_EJECUCION", "En ejecución"),
-                     ("EN_REVISION", "En revisión"), ("CERRADA", "Cerrada")]
-ESTADOS_EVALUACION = [("PENDIENTE", "Sin evaluar"), ("IMPLEMENTADO", "Implementado"),
-                      ("PARCIAL", "Parcialmente implementado"), ("NO_IMPLEMENTADO", "No implementado"),
-                      ("NO_APLICABLE", "No aplicable")]
+ESTADOS_AUDITORIA = [
+    ("BORRADOR", "Borrador"),
+    ("EN_EJECUCION", "En ejecución"),
+    ("EN_REVISION", "En revisión"),
+    ("CERRADA", "Cerrada"),
+]
+ESTADOS_EVALUACION = [
+    ("PENDIENTE", "Sin evaluar"),
+    ("IMPLEMENTADO", "Implementado"),
+    ("PARCIAL", "Parcialmente implementado"),
+    ("NO_IMPLEMENTADO", "No implementado"),
+    ("NO_APLICABLE", "No aplicable"),
+]
 NIVELES = [("ALTA", "Alta"), ("MEDIA", "Media"), ("BAJA", "Baja")]
-CATEGORIAS = [("ORGANIZACIONAL", "Organizacionales (5)"), ("PERSONAS", "Personas (6)"),
-              ("FISICO", "Físicos (7)"), ("TECNOLOGICO", "Tecnológicos (8)")]
+CATEGORIAS = [
+    ("ORGANIZACIONAL", "Organizacionales (5)"),
+    ("PERSONAS", "Personas (6)"),
+    ("FISICO", "Físicos (7)"),
+    ("TECNOLOGICO", "Tecnológicos (8)"),
+]
 
 
 def _en(campo, opciones):
@@ -61,10 +74,13 @@ class AuditoriaModel(models.Model):
         db_table = "auditoria"
         ordering = ["-creada", "-id"]
         constraints = [
-            models.CheckConstraint(condition=Q(fecha_fin__gte=models.F("fecha_inicio")), name="auditoria_fechas_validas"),
+            models.CheckConstraint(
+                condition=Q(fecha_fin__gte=models.F("fecha_inicio")), name="auditoria_fechas_validas"
+            ),
             models.CheckConstraint(condition=_en("estado", ESTADOS_AUDITORIA), name="auditoria_estado_valido"),
-            models.CheckConstraint(condition=~Q(organizacion="") & ~Q(objetivo="") & ~Q(alcance=""),
-                                   name="auditoria_datos_obligatorios"),
+            models.CheckConstraint(
+                condition=~Q(organizacion="") & ~Q(objetivo="") & ~Q(alcance=""), name="auditoria_datos_obligatorios"
+            ),
         ]
 
 
@@ -80,15 +96,18 @@ class EvaluacionControlModel(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["auditoria", "control"], name="evaluacion_control_unica"),
             models.CheckConstraint(condition=_en("estado", ESTADOS_EVALUACION), name="evaluacion_estado_valido"),
-            models.CheckConstraint(condition=Q(estado="PENDIENTE") | ~Q(observacion=""),
-                                   name="evaluacion_observacion_obligatoria"),
-            models.CheckConstraint(condition=~Q(estado="NO_APLICABLE") | ~Q(justificacion_na=""),
-                                   name="evaluacion_na_exige_justificacion"),
+            models.CheckConstraint(
+                condition=Q(estado="PENDIENTE") | ~Q(observacion=""), name="evaluacion_observacion_obligatoria"
+            ),
+            models.CheckConstraint(
+                condition=~Q(estado="NO_APLICABLE") | ~Q(justificacion_na=""), name="evaluacion_na_exige_justificacion"
+            ),
         ]
 
 
 class ArchivoEvidenciaModel(models.Model):
     """Usado por el adaptador AlmacenEvidenciasBD. Reemplazable por S3/Supabase."""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     nombre = models.CharField(max_length=255)
     tipo = models.CharField(max_length=100)
@@ -99,8 +118,9 @@ class ArchivoEvidenciaModel(models.Model):
     class Meta:
         db_table = "archivo_evidencia"
         constraints = [
-            models.CheckConstraint(condition=Q(tamano__gt=0) & Q(tamano__lte=5 * 1024 * 1024),
-                                   name="archivo_tamano_maximo_5mb"),
+            models.CheckConstraint(
+                condition=Q(tamano__gt=0) & Q(tamano__lte=5 * 1024 * 1024), name="archivo_tamano_maximo_5mb"
+            ),
         ]
 
 
@@ -120,8 +140,10 @@ class EvidenciaModel(models.Model):
         ordering = ["codigo"]
         constraints = [
             models.CheckConstraint(condition=~Q(descripcion="") & ~Q(fuente=""), name="evidencia_datos_obligatorios"),
-            models.CheckConstraint(condition=~Q(referencia="") | Q(archivo__isnull=False) | ~Q(archivo_nombre=""),
-                                   name="evidencia_archivo_o_referencia"),
+            models.CheckConstraint(
+                condition=~Q(referencia="") | Q(archivo__isnull=False) | ~Q(archivo_nombre=""),
+                name="evidencia_archivo_o_referencia",
+            ),
         ]
 
 
@@ -143,7 +165,8 @@ class HallazgoModel(models.Model):
             models.CheckConstraint(condition=_en("severidad", NIVELES), name="hallazgo_severidad_valida"),
             models.CheckConstraint(
                 condition=~Q(condicion="") & ~Q(criterio="") & ~Q(causa="") & ~Q(efecto_riesgo=""),
-                name="hallazgo_campos_obligatorios"),
+                name="hallazgo_campos_obligatorios",
+            ),
         ]
 
 

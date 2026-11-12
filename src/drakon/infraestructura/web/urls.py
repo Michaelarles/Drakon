@@ -18,17 +18,47 @@ urlpatterns = [
     path("auditorias/<int:id_auditoria>/controles/", views.controles_seleccion, name="controles_seleccion"),
     path("auditorias/<int:id_auditoria>/evaluar/", views.evaluar_inicio, name="evaluar_inicio"),
     path("auditorias/<int:id_auditoria>/evaluar/<int:id_control>/", views.evaluar_control, name="evaluar_control"),
-    path("auditorias/<int:id_auditoria>/evaluar/<int:id_control>/evidencias/", views.evidencia_agregar, name="evidencia_agregar"),
-    path("auditorias/<int:id_auditoria>/evidencias/<str:codigo>/eliminar/", views.evidencia_eliminar, name="evidencia_eliminar"),
-    path("auditorias/<int:id_auditoria>/evidencias/<str:codigo>/editar/", views.evidencia_editar, name="evidencia_editar"),
-    path("auditorias/<int:id_auditoria>/evidencias/<str:codigo>/archivo/", views.evidencia_archivo, name="evidencia_archivo"),
+    path(
+        "auditorias/<int:id_auditoria>/evaluar/<int:id_control>/evidencias/",
+        views.evidencia_agregar,
+        name="evidencia_agregar",
+    ),
+    path(
+        "auditorias/<int:id_auditoria>/evidencias/<str:codigo>/eliminar/",
+        views.evidencia_eliminar,
+        name="evidencia_eliminar",
+    ),
+    path(
+        "auditorias/<int:id_auditoria>/evidencias/<str:codigo>/editar/", views.evidencia_editar, name="evidencia_editar"
+    ),
+    path(
+        "auditorias/<int:id_auditoria>/evidencias/<str:codigo>/archivo/",
+        views.evidencia_archivo,
+        name="evidencia_archivo",
+    ),
     path("auditorias/<int:id_auditoria>/hallazgos/", views.hallazgos, name="hallazgos"),
     path("auditorias/<int:id_auditoria>/hallazgos/nuevo/", views.hallazgo_nuevo, name="hallazgo_nuevo"),
     path("auditorias/<int:id_auditoria>/hallazgos/<str:codigo>/editar/", views.hallazgo_editar, name="hallazgo_editar"),
-    path("auditorias/<int:id_auditoria>/hallazgos/<str:codigo>/eliminar/", views.hallazgo_eliminar, name="hallazgo_eliminar"),
-    path("auditorias/<int:id_auditoria>/hallazgos/<str:codigo>/recomendaciones/", views.recomendacion_agregar, name="recomendacion_agregar"),
-    path("auditorias/<int:id_auditoria>/recomendaciones/<str:codigo>/editar/", views.recomendacion_editar, name="recomendacion_editar"),
-    path("auditorias/<int:id_auditoria>/recomendaciones/<str:codigo>/eliminar/", views.recomendacion_eliminar, name="recomendacion_eliminar"),
+    path(
+        "auditorias/<int:id_auditoria>/hallazgos/<str:codigo>/eliminar/",
+        views.hallazgo_eliminar,
+        name="hallazgo_eliminar",
+    ),
+    path(
+        "auditorias/<int:id_auditoria>/hallazgos/<str:codigo>/recomendaciones/",
+        views.recomendacion_agregar,
+        name="recomendacion_agregar",
+    ),
+    path(
+        "auditorias/<int:id_auditoria>/recomendaciones/<str:codigo>/editar/",
+        views.recomendacion_editar,
+        name="recomendacion_editar",
+    ),
+    path(
+        "auditorias/<int:id_auditoria>/recomendaciones/<str:codigo>/eliminar/",
+        views.recomendacion_eliminar,
+        name="recomendacion_eliminar",
+    ),
     path("auditorias/<int:id_auditoria>/informe/", views.informe_generar, name="informe_generar"),
     path("informes/<int:id_informe>/pdf/", views.informe_pdf, name="informe_pdf"),
 ]

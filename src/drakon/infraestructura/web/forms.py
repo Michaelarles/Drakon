@@ -1,4 +1,5 @@
 """Formularios web: validan formato en el servidor (RNF03). Las reglas de negocio las valida el dominio."""
+
 from django import forms
 
 from drakon.dominio.errores import ErrorDeDominio
@@ -21,10 +22,15 @@ class AuditoriaForm(FormularioBase):
     organizacion = forms.CharField(label="Organización", max_length=120)
     objetivo = forms.CharField(label="Objetivo", widget=forms.Textarea(attrs={"rows": 3}))
     alcance = forms.CharField(label="Alcance", widget=forms.Textarea(attrs={"rows": 3}))
-    fecha_inicio = forms.DateField(label="Fecha de inicio", widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"))
-    fecha_fin = forms.DateField(label="Fecha de cierre", widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"))
+    fecha_inicio = forms.DateField(
+        label="Fecha de inicio", widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")
+    )
+    fecha_fin = forms.DateField(
+        label="Fecha de cierre", widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")
+    )
     referentes = forms.CharField(
-        label="Referentes normativos", required=False,
+        label="Referentes normativos",
+        required=False,
         initial="ISO 19011:2018; ISO/IEC 27001:2022; ISO/IEC 27002:2022",
         widget=forms.Textarea(attrs={"rows": 2}),
     )
@@ -47,12 +53,16 @@ ESTADOS_EVALUACION = [
 
 
 class EvaluacionForm(FormularioBase):
-    estado = forms.ChoiceField(label="Estado de implementación", choices=ESTADOS_EVALUACION,
-                               widget=forms.RadioSelect,
-                               error_messages={"required": "Seleccione uno de los cuatro estados."})
+    estado = forms.ChoiceField(
+        label="Estado de implementación",
+        choices=ESTADOS_EVALUACION,
+        widget=forms.RadioSelect,
+        error_messages={"required": "Seleccione uno de los cuatro estados."},
+    )
     observacion = forms.CharField(label="Observación del auditor", widget=forms.Textarea(attrs={"rows": 3}))
-    justificacion_na = forms.CharField(label="Justificación de «No aplicable»", required=False,
-                                       widget=forms.Textarea(attrs={"rows": 2}))
+    justificacion_na = forms.CharField(
+        label="Justificación de «No aplicable»", required=False, widget=forms.Textarea(attrs={"rows": 2})
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -66,16 +76,22 @@ class EvaluacionForm(FormularioBase):
 
 
 # ------------------------------------------------------------- RF04
-FUENTES = [("Documental", "Documental"), ("Entrevista", "Entrevista"), ("Observación", "Observación directa"),
-           ("Técnica", "Prueba técnica / captura"), ("Registro", "Registro del sistema")]
+FUENTES = [
+    ("Documental", "Documental"),
+    ("Entrevista", "Entrevista"),
+    ("Observación", "Observación directa"),
+    ("Técnica", "Prueba técnica / captura"),
+    ("Registro", "Registro del sistema"),
+]
 
 
 class EvidenciaForm(FormularioBase):
     descripcion = forms.CharField(label="Descripción", max_length=500)
     fuente = forms.ChoiceField(label="Fuente", choices=FUENTES)
     fecha = forms.DateField(label="Fecha", widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"))
-    referencia = forms.CharField(label="Referencia o enlace", required=False, max_length=500,
-                                 help_text="Obligatoria si no adjunta un archivo.")
+    referencia = forms.CharField(
+        label="Referencia o enlace", required=False, max_length=500, help_text="Obligatoria si no adjunta un archivo."
+    )
     archivo = forms.FileField(label="Archivo (PDF, PNG o JPG, máx. 5 MB)", required=False)
     es_simulada = forms.BooleanField(label="Evidencia simulada (ejercicio académico)", required=False, initial=True)
 
@@ -146,8 +162,12 @@ class EvidenciaEdicionForm(EvidenciaForm):
         return datos
 
 
-CATEGORIAS = [("ORGANIZACIONAL", "Organizacionales (5)"), ("PERSONAS", "Personas (6)"),
-              ("FISICO", "Físicos (7)"), ("TECNOLOGICO", "Tecnológicos (8)")]
+CATEGORIAS = [
+    ("ORGANIZACIONAL", "Organizacionales (5)"),
+    ("PERSONAS", "Personas (6)"),
+    ("FISICO", "Físicos (7)"),
+    ("TECNOLOGICO", "Tecnológicos (8)"),
+]
 
 
 class ControlForm(FormularioBase):

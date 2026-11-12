@@ -1,5 +1,5 @@
-# Plan B local: levanta la misma aplicación con su propio PostgreSQL.
-#   docker compose up --build      →  http://localhost:8000
+# Entorno local completo (plan B para la sustentación): app + PostgreSQL.
+#   docker compose up --build      →  http://localhost:8000   (admin / Admin-2026!, ana / Prueba-2026!)
 services:
   db:
     image: postgres:16
@@ -12,8 +12,10 @@ services:
       test: ["CMD-SHELL", "pg_isready -U drakon"]
       interval: 3s
       retries: 10
+
   web:
     build: .
+    image: drakon:local
     ports: ["8000:8000"]
     environment:
       DATABASE_URL: postgresql://drakon:drakon@db:5432/drakon
@@ -21,7 +23,10 @@ services:
       DEBUG: "true"
       DJANGO_SUPERUSER_USERNAME: admin
       DJANGO_SUPERUSER_PASSWORD: Admin-2026!
+      DEMO_USUARIO: ana
+      DEMO_CLAVE: Prueba-2026!
     depends_on:
       db: {condition: service_healthy}
+
 volumes:
   pgdata:

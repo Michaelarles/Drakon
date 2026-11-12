@@ -2,6 +2,9 @@
 
 ![Drakon](src/drakon/infraestructura/web/static/drakon/avatar/logo_completo.png)
 
+[![CI](../../actions/workflows/ci.yml/badge.svg)](../../actions/workflows/ci.yml)
+[![CD](../../actions/workflows/cd.yml/badge.svg)](../../actions/workflows/cd.yml)
+
 Sistema de Gestión de Auditorías de Sistemas de Información (proyecto académico, Ingeniería de Sistemas).
 Apoya una auditoría básica de seguridad de la información con ISO/IEC 27002:2022: configurar la auditoría, seleccionar controles, evaluarlos, registrar evidencias, documentar hallazgos y recomendaciones y generar el informe consolidado.
 
@@ -51,13 +54,52 @@ PYTHONPATH=src lint-imports
 
 Para probar contra PostgreSQL: `DATABASE_URL=postgresql://... pytest`.
 
+## Docker
+
+| Archivo | Para qué |
+|---|---|
+| `Dockerfile` | Imagen de producción en dos etapas: dependencias en un entorno aislado, imagen final liviana, usuario sin privilegios (`drakon`), `HEALTHCHECK` sobre `/salud/` y estáticos ya compilados. |
+| `docker-compose.yml` | Entorno local completo: la app más PostgreSQL 16. También lo usa el CI para la prueba de humo. |
+| `.dockerignore` | Deja fuera `.venv`, pruebas, base local, secretos y cachés. |
+
+```bash
+docker compose up --build        # http://localhost:8000  ·  admin / Admin-2026!  ·  ana / Prueba-2026!
+docker compose down -v           # apagar y borrar los datos locales
+```
+
+## CI/CD (GitHub Actions)
+
+```
+push / pull request ──► CI ─┬─ Calidad: ruff (estilo) · import-linter (hexagonal) · migraciones al día
+                            ├─ Pruebas: pytest contra PostgreSQL 16 · cobertura mínima 85 %
+                            └─ Docker: construye la imagen · docker compose up · verifica /salud/, ingreso y estáticos
+                                   │
+                         (solo main y CI en verde)
+                                   ▼
+                                  CD ── publica la imagen en ghcr.io/<usuario>/drakon (latest y sha-<commit>)
+                                   └── Railway despliega con «Wait for CI»
+```
+
+| Archivo | Qué hace |
+|---|---|
+| `.github/workflows/ci.yml` | Integración continua en cada push y pull request. |
+| `.github/workflows/cd.yml` | Entrega continua: publica la imagen versionada en GitHub Container Registry. |
+| `.github/dependabot.yml` | Cada semana propone actualizaciones de dependencias, de la imagen base y de las acciones. |
+
+Para revisar localmente lo mismo que el CI:
+```bash
+ruff check src tests && ruff format --check src tests
+PYTHONPATH=src lint-imports
+pytest --cov --cov-fail-under=85
+```
+
 ## Despliegue en Railway (sin tarjeta)
 
 1. **Neon:** copia el connection string **directo** (sin `-pooler`).
 2. **Railway** (railway.com) → entra con GitHub → *New Project → Deploy from GitHub repo* → elige `drakon`. Railway detecta el `Dockerfile` y el `railway.json` (con el chequeo de salud en `/salud/`).
 3. **Variables** del servicio: `DATABASE_URL`, `SECRET_KEY` (cadena larga aleatoria), `DEBUG=false`, `DJANGO_SUPERUSER_USERNAME`, `DJANGO_SUPERUSER_PASSWORD`, `DEMO_USUARIO`, `DEMO_CLAVE`.
 4. **Settings → Networking → Generate Domain** para obtener la URL pública (`*.up.railway.app`). Django la acepta sola gracias a `RAILWAY_PUBLIC_DOMAIN`.
-5. Cada `git push` a `main` redespliega.
+5. **Settings → Source → «Wait for CI»**: actívalo para que Railway despliegue solo cuando el CI de GitHub pase. Ese es el último eslabón del CD.
 
 La prueba gratuita de Railway trae $5 de crédito único por 30 días y no pide tarjeta. Después, el plan Free da $1 de crédito al mes.
 

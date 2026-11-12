@@ -2,6 +2,7 @@
 
 Es idempotente: se puede ejecutar en cada despliegue sin duplicar datos.
 """
+
 import json
 import os
 from pathlib import Path
@@ -24,8 +25,7 @@ class Command(BaseCommand):
     def handle(self, *args, **opts):
         auditor, _ = Group.objects.get_or_create(name="auditor")
         admin, _ = Group.objects.get_or_create(name="admin")
-        permisos = Permission.objects.filter(content_type__app_label="persistencia",
-                                             codename__endswith="controlmodel")
+        permisos = Permission.objects.filter(content_type__app_label="persistencia", codename__endswith="controlmodel")
         admin.permissions.set(permisos)
 
         datos = json.loads(FIXTURE.read_text(encoding="utf-8"))
@@ -42,8 +42,14 @@ class Command(BaseCommand):
         clave = os.environ.get("DJANGO_SUPERUSER_PASSWORD")
         if usuario and clave:
             User = get_user_model()
-            u, creado = User.objects.get_or_create(username=usuario, defaults={
-                "email": os.environ.get("DJANGO_SUPERUSER_EMAIL", ""), "is_staff": True, "is_superuser": True})
+            u, creado = User.objects.get_or_create(
+                username=usuario,
+                defaults={
+                    "email": os.environ.get("DJANGO_SUPERUSER_EMAIL", ""),
+                    "is_staff": True,
+                    "is_superuser": True,
+                },
+            )
             if creado:
                 u.set_password(clave)
                 u.save()

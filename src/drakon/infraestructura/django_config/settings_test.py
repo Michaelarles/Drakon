@@ -1,4 +1,5 @@
 """Configuración para pruebas: usa DATABASE_URL si existe (PostgreSQL) o SQLite."""
+
 import os
 
 os.environ.setdefault("DEBUG", "true")

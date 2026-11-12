@@ -1,4 +1,5 @@
 """Pruebas de aceptación por HTTP (CP-01, CP-02, CP-03, CP-13 y salud)."""
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
@@ -8,8 +9,14 @@ from drakon.infraestructura.persistencia.models import AuditoriaModel, ControlMo
 
 pytestmark = pytest.mark.django_db
 
-DATOS = {"organizacion": "Empresa ABC", "objetivo": "Evaluar controles", "alcance": "Servidores y red",
-         "fecha_inicio": "2026-11-09", "fecha_fin": "2026-11-20", "referentes": ""}
+DATOS = {
+    "organizacion": "Empresa ABC",
+    "objetivo": "Evaluar controles",
+    "alcance": "Servidores y red",
+    "fecha_inicio": "2026-11-09",
+    "fecha_fin": "2026-11-20",
+    "referentes": "",
+}
 
 
 @pytest.fixture
@@ -77,12 +84,13 @@ def test_dashboard_y_catalogo(cliente):
 
 def test_dashboard_aviso_naranja_y_graficos(cliente):
     from drakon.infraestructura.persistencia.models import AuditoriaModel as A
+
     call_command("cargar_empresa_abc", usuario="ana", verbosity=0)
     html = cliente.get(reverse("dashboard")).content.decode()
     assert "Hola, ana" in html or "Hola, Ana" in html
     assert "ya está lista para cerrarse" in html
     assert "33,3 %" in html and "54,2 %" in html
-    assert 'width:33.3%' in html            # CSS con punto decimal aunque la interfaz use coma
+    assert "width:33.3%" in html  # CSS con punto decimal aunque la interfaz use coma
     assert A.objects.count() == 1
 
 
@@ -92,6 +100,7 @@ def test_cp10_generar_informe_desde_la_interfaz(cliente):
     r = cliente.post(reverse("informe_generar", args=[a.id]), follow=True)
     assert "Informe versión 1 generado" in r.content.decode()
     from drakon.infraestructura.persistencia.models import InformeModel
+
     pdf = cliente.get(reverse("informe_pdf", args=[InformeModel.objects.get().id]))
     assert pdf["Content-Type"] == "application/pdf" and pdf.content.startswith(b"%PDF")
 

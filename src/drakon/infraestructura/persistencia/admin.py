@@ -1,4 +1,5 @@
 """Admin de Django: solo para el catálogo de controles (rol «admin», RNF04)."""
+
 from django.contrib import admin
 
 from .models import ControlModel

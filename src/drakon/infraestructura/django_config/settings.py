@@ -1,10 +1,11 @@
 """Configuración de Django (adaptador). Todo lo sensible llega por variables de entorno."""
+
 import os
 from pathlib import Path
 
 import dj_database_url
 
-BASE_DIR = Path(__file__).resolve().parents[4]          # raíz del repositorio
+BASE_DIR = Path(__file__).resolve().parents[4]  # raíz del repositorio
 INFRA_DIR = Path(__file__).resolve().parents[1]
 
 
@@ -88,8 +89,11 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
-                    if not DEBUG else "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        if not DEBUG
+        else "django.contrib.staticfiles.storage.StaticFilesStorage"
+    },
 }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

@@ -3,6 +3,7 @@
 Demuestran la ventaja de la arquitectura hexagonal: los casos de uso se prueban
 sin Django ni PostgreSQL. También sirven para trabajar la interfaz en paralelo.
 """
+
 import copy
 import itertools
 import json
@@ -80,6 +81,7 @@ class RepoInformesMemoria:
 
     def guardar(self, informe):
         from dataclasses import replace
+
         informe = replace(informe, id=next(self._ids))
         self._datos[informe.id] = informe
         return informe
@@ -122,10 +124,18 @@ class PDFFalso:
 
 # Los 13 controles y estados del ejemplo de Empresa ABC
 EJEMPLO_ABC = [
-    ("5.1", "IMPLEMENTADO"), ("5.15", "IMPLEMENTADO"), ("5.18", "PARCIAL"),
-    ("5.24", "NO_IMPLEMENTADO"), ("6.3", "PARCIAL"), ("7.2", "IMPLEMENTADO"),
-    ("8.5", "PARCIAL"), ("8.7", "IMPLEMENTADO"), ("8.8", "NO_IMPLEMENTADO"),
-    ("8.13", "PARCIAL"), ("8.15", "NO_IMPLEMENTADO"), ("8.23", "PARCIAL"),
+    ("5.1", "IMPLEMENTADO"),
+    ("5.15", "IMPLEMENTADO"),
+    ("5.18", "PARCIAL"),
+    ("5.24", "NO_IMPLEMENTADO"),
+    ("6.3", "PARCIAL"),
+    ("7.2", "IMPLEMENTADO"),
+    ("8.5", "PARCIAL"),
+    ("8.7", "IMPLEMENTADO"),
+    ("8.8", "NO_IMPLEMENTADO"),
+    ("8.13", "PARCIAL"),
+    ("8.15", "NO_IMPLEMENTADO"),
+    ("8.23", "PARCIAL"),
     ("8.31", "NO_APLICABLE"),
 ]
 

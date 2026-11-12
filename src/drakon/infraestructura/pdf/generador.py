@@ -1,9 +1,9 @@
 """Adaptador GeneradorPDF con xhtml2pdf (Python puro, sin librerías del sistema)."""
+
 from io import BytesIO
 
 from django.conf import settings
 from django.contrib.staticfiles import finders
-
 from django.template.loader import render_to_string
 from xhtml2pdf import pisa
 

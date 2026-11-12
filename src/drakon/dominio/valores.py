@@ -1,4 +1,5 @@
 """Objetos de valor del dominio: estados, severidades y categorías."""
+
 from enum import Enum
 
 

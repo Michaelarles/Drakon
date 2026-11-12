@@ -1,4 +1,5 @@
 """Agregado Informe: instantánea inmutable de los resultados de una auditoría (RF08)."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -21,9 +22,12 @@ class Informe:
 def construir_contenido(auditoria: Auditoria, controles: dict[int, Control], auditor: str) -> dict:
     """Arma el contenido del informe solo con datos registrados (condición 16.1)."""
     ind = CalculadoraIndicadores.de_auditoria(auditoria)
-    nombre_control = {e.id_control: f"{e.codigo_control} {controles[e.id_control].nombre}"
-                      if e.id_control in controles else e.codigo_control
-                      for e in auditoria.evaluaciones}
+    nombre_control = {
+        e.id_control: f"{e.codigo_control} {controles[e.id_control].nombre}"
+        if e.id_control in controles
+        else e.codigo_control
+        for e in auditoria.evaluaciones
+    }
     aplicables = ind.aplicables
     base_txt = f"{ind.cumplimiento_base:.1f}".replace(".", ",") if ind.cumplimiento_base is not None else "sin datos"
     severidades = ind.hallazgos_por_severidad
@@ -72,8 +76,12 @@ def construir_contenido(auditoria: Auditoria, controles: dict[int, Control], aud
                 "causa": h.causa,
                 "efecto": h.efecto,
                 "recomendaciones": [
-                    {"codigo": r.codigo, "descripcion": r.descripcion,
-                     "prioridad": r.prioridad.etiqueta, "plazo_dias": r.plazo_dias}
+                    {
+                        "codigo": r.codigo,
+                        "descripcion": r.descripcion,
+                        "prioridad": r.prioridad.etiqueta,
+                        "plazo_dias": r.plazo_dias,
+                    }
                     for r in h.recomendaciones
                 ],
             }
@@ -89,7 +97,8 @@ def construir_contenido(auditoria: Auditoria, controles: dict[int, Control], aud
                 "simulada": ev.es_simulada,
                 "referencia": ev.referencia or ev.archivo_nombre,
             }
-            for e in auditoria.evaluaciones for ev in e.evidencias
+            for e in auditoria.evaluaciones
+            for ev in e.evidencias
         ],
         "limitaciones": ADVERTENCIA,
     }

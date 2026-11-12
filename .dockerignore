@@ -1,7 +1,17 @@
+# Nada local ni de desarrollo entra a la imagen
 .git
+.github
+.venv
+venv
 __pycache__/
 *.pyc
 db.sqlite3
 staticfiles/
 .env
 .pytest_cache/
+.import_linter_cache/
+.coverage
+htmlcov/
+Claude outputs/
+tests/
+docs/

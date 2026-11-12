@@ -4,6 +4,7 @@ Contiene las evaluaciones de control, sus evidencias, los hallazgos y sus
 recomendaciones. Todas las reglas que cruzan esas entidades se validan aquí,
 de modo que la trazabilidad (RNF05) se garantiza en un solo lugar.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -36,20 +37,20 @@ def _texto(valor: str | None, campo: str, nombre: str, max_len: int | None = Non
 # --------------------------------------------------------------------------
 @dataclass
 class Evidencia:
-    codigo: str                      # EV-01, EV-02, ...
+    codigo: str  # EV-01, EV-02, ...
     descripcion: str
     fuente: str
     fecha: date
     es_simulada: bool = True
-    referencia: str = ""             # URL o referencia documental
-    archivo_id: str | None = None    # clave en el almacén de evidencias
+    referencia: str = ""  # URL o referencia documental
+    archivo_id: str | None = None  # clave en el almacén de evidencias
     archivo_nombre: str = ""
     id: int | None = None
 
 
 @dataclass
 class Recomendacion:
-    codigo: str                      # R-01, R-02, ...
+    codigo: str  # R-01, R-02, ...
     descripcion: str
     prioridad: Prioridad
     plazo_dias: int
@@ -58,7 +59,7 @@ class Recomendacion:
 
 @dataclass
 class Hallazgo:
-    codigo: str                      # H-01, H-02, ...
+    codigo: str  # H-01, H-02, ...
     id_control: int
     condicion: str
     criterio: str
@@ -104,8 +105,9 @@ class Auditoria:
 
     # ---------------------------------------------------------------- RF01
     @classmethod
-    def crear(cls, organizacion, objetivo, alcance, fecha_inicio, fecha_fin, id_auditor,
-              referentes: str | None = None) -> "Auditoria":
+    def crear(
+        cls, organizacion, objetivo, alcance, fecha_inicio, fecha_fin, id_auditor, referentes: str | None = None
+    ) -> Auditoria:
         if fecha_inicio is None:
             raise DatoInvalido("La fecha de inicio es obligatoria.", "fecha_inicio")
         if fecha_fin is None:
@@ -170,8 +172,9 @@ class Auditoria:
         self.estado = EstadoAuditoria.EN_EJECUCION
 
     # ---------------------------------------------------------------- RF03
-    def evaluar_control(self, id_control: int, estado: EstadoEvaluacion | str,
-                        observacion: str, justificacion_na: str = "") -> EvaluacionControl:
+    def evaluar_control(
+        self, id_control: int, estado: EstadoEvaluacion | str, observacion: str, justificacion_na: str = ""
+    ) -> EvaluacionControl:
         self._exigir_estado(EstadoAuditoria.EN_EJECUCION)
         estado = EstadoEvaluacion(estado)
         if estado == EstadoEvaluacion.PENDIENTE:
@@ -191,17 +194,34 @@ class Auditoria:
         return ev
 
     # ---------------------------------------------------------------- RF04
-    def registrar_evidencia(self, id_control: int, descripcion: str, fuente: str, fecha: date,
-                            es_simulada: bool = True, referencia: str = "",
-                            archivo_id: str | None = None, archivo_nombre: str = "") -> Evidencia:
-        evidencia = self.validar_evidencia(id_control, descripcion, fuente, fecha, es_simulada,
-                                           referencia, archivo_id, archivo_nombre)
+    def registrar_evidencia(
+        self,
+        id_control: int,
+        descripcion: str,
+        fuente: str,
+        fecha: date,
+        es_simulada: bool = True,
+        referencia: str = "",
+        archivo_id: str | None = None,
+        archivo_nombre: str = "",
+    ) -> Evidencia:
+        evidencia = self.validar_evidencia(
+            id_control, descripcion, fuente, fecha, es_simulada, referencia, archivo_id, archivo_nombre
+        )
         self.evaluacion(id_control).evidencias.append(evidencia)
         return evidencia
 
-    def validar_evidencia(self, id_control: int, descripcion: str, fuente: str, fecha: date,
-                          es_simulada: bool = True, referencia: str = "",
-                          archivo_id: str | None = None, archivo_nombre: str = "") -> Evidencia:
+    def validar_evidencia(
+        self,
+        id_control: int,
+        descripcion: str,
+        fuente: str,
+        fecha: date,
+        es_simulada: bool = True,
+        referencia: str = "",
+        archivo_id: str | None = None,
+        archivo_nombre: str = "",
+    ) -> Evidencia:
         """Valida y construye la evidencia sin agregarla (útil antes de guardar archivos)."""
         self._exigir_estado(EstadoAuditoria.EN_EJECUCION)
         self.evaluacion(id_control)
@@ -234,8 +254,9 @@ class Auditoria:
     def todas_las_evidencias(self) -> list[Evidencia]:
         return [e for ev in self.evaluaciones for e in ev.evidencias]
 
-    def editar_evidencia(self, codigo: str, descripcion: str, fuente: str, fecha: date,
-                         es_simulada: bool, referencia: str) -> Evidencia:
+    def editar_evidencia(
+        self, codigo: str, descripcion: str, fuente: str, fecha: date, es_simulada: bool, referencia: str
+    ) -> Evidencia:
         """Actualiza los datos descriptivos de una evidencia (el archivo, si lo hay, se conserva)."""
         self._exigir_estado(EstadoAuditoria.EN_EJECUCION)
         evidencia = self.evidencia(codigo)
@@ -274,7 +295,7 @@ class Auditoria:
         try:
             severidad = Severidad(severidad)
         except ValueError:
-            raise DatoInvalido("Seleccione la severidad del hallazgo.", "severidad")
+            raise DatoInvalido("Seleccione la severidad del hallazgo.", "severidad") from None
         return dict(
             condicion=_texto(condicion, "condicion", "La condición"),
             criterio=_texto(criterio, "criterio", "El criterio"),
@@ -288,34 +309,52 @@ class Auditoria:
         try:
             prioridad = Prioridad(prioridad)
         except ValueError:
-            raise DatoInvalido("Seleccione la prioridad de la recomendación.", "prioridad")
+            raise DatoInvalido("Seleccione la prioridad de la recomendación.", "prioridad") from None
         try:
             plazo = int(plazo_dias)
         except (TypeError, ValueError):
             plazo = 0
         if plazo <= 0:
             raise DatoInvalido("El plazo sugerido debe ser un número de días mayor que cero.", "plazo_dias")
-        return dict(descripcion=_texto(descripcion, "recomendacion", "La recomendación"),
-                    prioridad=prioridad, plazo_dias=plazo)
+        return dict(
+            descripcion=_texto(descripcion, "recomendacion", "La recomendación"), prioridad=prioridad, plazo_dias=plazo
+        )
 
-    def registrar_hallazgo(self, id_control: int, condicion: str, criterio: str, causa: str,
-                           efecto: str, severidad: Severidad | str,
-                           recomendacion: str | None = None, prioridad: Prioridad | str | None = None,
-                           plazo_dias: int | None = None) -> Hallazgo:
+    def registrar_hallazgo(
+        self,
+        id_control: int,
+        condicion: str,
+        criterio: str,
+        causa: str,
+        efecto: str,
+        severidad: Severidad | str,
+        recomendacion: str | None = None,
+        prioridad: Prioridad | str | None = None,
+        plazo_dias: int | None = None,
+    ) -> Hallazgo:
         self._exigir_estado(EstadoAuditoria.EN_EJECUCION, EstadoAuditoria.EN_REVISION)
         self._validar_control_para_hallazgo(id_control)
         datos = self._datos_hallazgo(condicion, criterio, causa, efecto, severidad)
         if recomendacion and recomendacion.strip():
             self._datos_recomendacion(recomendacion, prioridad, plazo_dias)  # valida antes de agregar nada
-        hallazgo = Hallazgo(codigo=self._siguiente_codigo("H", [h.codigo for h in self.hallazgos]),
-                            id_control=id_control, **datos)
+        hallazgo = Hallazgo(
+            codigo=self._siguiente_codigo("H", [h.codigo for h in self.hallazgos]), id_control=id_control, **datos
+        )
         self.hallazgos.append(hallazgo)
         if recomendacion and recomendacion.strip():
             self.agregar_recomendacion(hallazgo.codigo, recomendacion, prioridad, plazo_dias)
         return hallazgo
 
-    def editar_hallazgo(self, codigo: str, id_control: int, condicion: str, criterio: str, causa: str,
-                        efecto: str, severidad: Severidad | str) -> Hallazgo:
+    def editar_hallazgo(
+        self,
+        codigo: str,
+        id_control: int,
+        condicion: str,
+        criterio: str,
+        causa: str,
+        efecto: str,
+        severidad: Severidad | str,
+    ) -> Hallazgo:
         """Corrige un hallazgo; conserva su código y sus recomendaciones."""
         self._exigir_estado(EstadoAuditoria.EN_EJECUCION, EstadoAuditoria.EN_REVISION)
         hallazgo = self.hallazgo(codigo)
@@ -332,19 +371,21 @@ class Auditoria:
         self.hallazgos.remove(hallazgo)
         return hallazgo
 
-    def agregar_recomendacion(self, codigo_hallazgo: str, descripcion: str,
-                              prioridad: Prioridad | str | None, plazo_dias: int | None) -> Recomendacion:
+    def agregar_recomendacion(
+        self, codigo_hallazgo: str, descripcion: str, prioridad: Prioridad | str | None, plazo_dias: int | None
+    ) -> Recomendacion:
         self._exigir_estado(EstadoAuditoria.EN_EJECUCION, EstadoAuditoria.EN_REVISION)
         hallazgo = self.hallazgo(codigo_hallazgo)
         datos = self._datos_recomendacion(descripcion, prioridad, plazo_dias)
         rec = Recomendacion(
-            codigo=self._siguiente_codigo("R", [r.codigo for h in self.hallazgos for r in h.recomendaciones]),
-            **datos)
+            codigo=self._siguiente_codigo("R", [r.codigo for h in self.hallazgos for r in h.recomendaciones]), **datos
+        )
         hallazgo.recomendaciones.append(rec)
         return rec
 
-    def editar_recomendacion(self, codigo: str, descripcion: str, prioridad: Prioridad | str,
-                             plazo_dias: int) -> Recomendacion:
+    def editar_recomendacion(
+        self, codigo: str, descripcion: str, prioridad: Prioridad | str, plazo_dias: int
+    ) -> Recomendacion:
         self._exigir_estado(EstadoAuditoria.EN_EJECUCION, EstadoAuditoria.EN_REVISION)
         _, rec = self.recomendacion(codigo)
         for campo, valor in self._datos_recomendacion(descripcion, prioridad, plazo_dias).items():
@@ -368,7 +409,9 @@ class Auditoria:
     def verificar_eliminable(self) -> None:
         """Una auditoría cerrada es un registro de evidencia: no se elimina."""
         if self.estado == EstadoAuditoria.CERRADA:
-            raise ReglaDeNegocioViolada("Una auditoría cerrada no se puede eliminar: es el soporte del informe emitido.")
+            raise ReglaDeNegocioViolada(
+                "Una auditoría cerrada no se puede eliminar: es el soporte del informe emitido."
+            )
 
     # ------------------------------------------------------- ciclo de vida
     def problemas_para_revision(self) -> list[str]:
@@ -378,9 +421,7 @@ class Auditoria:
             if not ev.evaluada:
                 problemas.append(f"El control {ev.codigo_control} no ha sido evaluado.")
             elif ev.estado.exige_evidencia and not ev.evidencias:
-                problemas.append(
-                    f"El control {ev.codigo_control} está «{ev.estado.etiqueta}» y no tiene evidencias."
-                )
+                problemas.append(f"El control {ev.codigo_control} está «{ev.estado.etiqueta}» y no tiene evidencias.")
         return problemas
 
     def problemas_para_cierre(self) -> list[str]:

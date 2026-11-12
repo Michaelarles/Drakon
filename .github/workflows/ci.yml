@@ -1,0 +1,117 @@
+# Integración continua: se ejecuta en cada push y en cada pull request.
+# Si cualquier etapa falla, el commit queda en rojo y no se despliega.
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  calidad:
+    name: Calidad y arquitectura
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements-dev.txt
+      - name: Estilo (ruff)
+        run: |
+          ruff check src tests
+          ruff format --check src tests
+      - name: Regla de dependencia hexagonal (import-linter)
+        env:
+          PYTHONPATH: src
+        run: lint-imports
+      - name: Migraciones al día
+        env:
+          DEBUG: "true"
+          PYTHONPATH: src
+        run: python manage.py makemigrations --check --dry-run
+
+  pruebas:
+    name: Pruebas (PostgreSQL 16)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: drakon
+          POSTGRES_PASSWORD: drakon
+          POSTGRES_DB: drakon
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U drakon"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://drakon:drakon@localhost:5432/drakon
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements-dev.txt
+      - name: Pruebas unitarias, de integración y de aceptación (CP-01 a CP-13)
+        run: pytest --cov --cov-report=term --cov-report=xml --cov-fail-under=85 -p no:warnings
+      - name: Resumen de cobertura
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import xml.etree.ElementTree as ET
+          try:
+              tasa = float(ET.parse("coverage.xml").getroot().get("line-rate")) * 100
+              print(f"### Cobertura de pruebas: {tasa:.1f} %")
+          except FileNotFoundError:
+              print("### Sin reporte de cobertura")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cobertura
+          path: coverage.xml
+
+  docker:
+    name: Imagen Docker y prueba de humo
+    runs-on: ubuntu-latest
+    needs: [calidad, pruebas]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Construir imagen
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: drakon:local
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Levantar app + PostgreSQL con docker compose
+        run: docker compose up -d --no-build --wait --wait-timeout 180
+      - name: Verificar que responde
+        run: |
+          curl -fsS http://localhost:8000/salud/ | tee /dev/stderr | grep -q '"ok"'
+          curl -fsS -o /dev/null -w "Ingreso: %{http_code}\n" http://localhost:8000/ingresar/
+          curl -fsS -o /dev/null -w "Estáticos: %{http_code}\n" http://localhost:8000/static/drakon/avatar/logo_icono.png
+      - name: Registros del contenedor (si algo falla)
+        if: failure()
+        run: docker compose logs --no-color
+      - name: Apagar
+        if: always()
+        run: docker compose down -v

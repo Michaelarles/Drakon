@@ -1,4 +1,5 @@
 """Pruebas del dominio puro (sin base de datos). Referencias a los casos CP del plan de pruebas."""
+
 from datetime import date
 
 import pytest
@@ -28,8 +29,12 @@ def evaluada_abc():
     a = en_ejecucion()
     for codigo, estado in EJEMPLO_ABC:
         c = CAT.por_codigo(codigo)
-        a.evaluar_control(c.id, estado, f"Observación {codigo}",
-                          "Adquiere soluciones como servicio." if estado == "NO_APLICABLE" else "")
+        a.evaluar_control(
+            c.id,
+            estado,
+            f"Observación {codigo}",
+            "Adquiere soluciones como servicio." if estado == "NO_APLICABLE" else "",
+        )
         if EstadoEvaluacion(estado).exige_evidencia:
             a.registrar_evidencia(c.id, "Soporte", "Documental", date(2026, 11, 10), referencia="DOC-1")
     return a
@@ -209,7 +214,7 @@ def test_editar_evidencia_y_registrar_hallazgo_invalido_no_deja_rastro():
     assert a.evidencia("EV-01").referencia == "DOC-9" and a.evidencia("EV-01").es_simulada is False
     with pytest.raises(DatoInvalido):
         a.registrar_hallazgo(CAT.por_codigo("8.8").id, "c", "cr", "ca", "ef", "ALTA", "Rec", None, 60)
-    assert a.hallazgos == []    # la recomendación inválida no deja un hallazgo a medias
+    assert a.hallazgos == []  # la recomendación inválida no deja un hallazgo a medias
 
 
 def test_auditoria_cerrada_no_se_elimina():

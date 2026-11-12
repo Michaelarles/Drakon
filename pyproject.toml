@@ -9,3 +9,24 @@ pythonpath = ["src", "."]
 testpaths = ["tests"]
 DJANGO_SETTINGS_MODULE = "drakon.infraestructura.django_config.settings_test"
 addopts = "-q"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = ["src/drakon/infraestructura/persistencia/migrations"]
+
+[tool.ruff.lint]
+# E/W estilo, F errores, I orden de imports, B bugs probables, UP sintaxis moderna
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["UP042"]  # los Enum(str) se mantienen por compatibilidad con plantillas Django
+
+[tool.ruff.lint.isort]
+known-first-party = ["drakon", "tests"]
+
+[tool.coverage.run]
+source = ["src/drakon"]
+omit = ["*/migrations/*", "*/django_config/wsgi.py"]
+
+[tool.ruff.lint.per-file-ignores]
+# Datos textuales del caso Empresa ABC (párrafos del documento de ejemplo)
+"src/drakon/infraestructura/persistencia/management/commands/cargar_empresa_abc.py" = ["E501"]
