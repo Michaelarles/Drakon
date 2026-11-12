@@ -3,14 +3,14 @@
 # Ejecutar:   docker compose up --build   (incluye PostgreSQL)
 
 # ---------- Etapa 1: dependencias (se reutiliza en caché si requirements.txt no cambia)
-FROM python:3.12-slim AS dependencias
+FROM python:3.15-slim AS dependencias
 ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 WORKDIR /app
 COPY requirements.txt .
 RUN python -m venv /venv && /venv/bin/pip install -r requirements.txt
 
 # ---------- Etapa 2: imagen final, liviana y sin herramientas de compilación
-FROM python:3.12-slim
+FROM python:3.15-slim
 LABEL org.opencontainers.image.title="DRAKON" \
       org.opencontainers.image.description="Sistema de gestión de auditorías ISO/IEC 27002:2022 (arquitectura hexagonal)" \
       org.opencontainers.image.licenses="UNLICENSED"
