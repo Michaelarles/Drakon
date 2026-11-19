@@ -8,7 +8,7 @@
 Sistema de Gestión de Auditorías de Sistemas de Información (proyecto académico, Ingeniería de Sistemas).
 Apoya una auditoría básica de seguridad de la información con ISO/IEC 27002:2022: configurar la auditoría, seleccionar controles, evaluarlos, registrar evidencias, documentar hallazgos y recomendaciones y generar el informe consolidado.
 
-## Arquitectura hexagonal
+## Arquitectura y organización de carpetas
 
 ```
 infraestructura  →  aplicación  →  dominio        (las dependencias apuntan hacia el centro)
@@ -19,6 +19,32 @@ infraestructura  →  aplicación  →  dominio        (las dependencias apuntan
 | Dominio | `src/drakon/dominio/` | Agregados `Auditoria`, `Control` e `Informe`, estados, reglas de negocio e indicadores. Python puro. |
 | Aplicación | `src/drakon/aplicacion/` | `puertos/` (interfaces) y `casos_uso/` (una clase por acción del usuario, RF01–RF09). |
 | Infraestructura | `src/drakon/infraestructura/` | Adaptadores: `web/` (Django), `persistencia/` (ORM + PostgreSQL), `evidencias/`, `pdf/` y `contenedor.py` (inyección de dependencias). |
+
+La estructura principal del repositorio es:
+
+```text
+Drakon/
+├── .github/workflows/             # Flujos de CI y CD
+├── fixtures/                      # Catálogo inicial de controles ISO 27002
+├── src/drakon/
+│   ├── dominio/                   # Entidades, reglas e indicadores
+│   ├── aplicacion/
+│   │   ├── casos_uso/             # Acciones y procesos de la aplicación
+│   │   └── puertos/               # Interfaces para comunicar capas
+│   └── infraestructura/
+│       ├── django_config/         # Configuración y arranque de Django
+│       ├── evidencias/            # Almacenamiento de evidencias
+│       ├── pdf/                   # Generación de informes PDF
+│       ├── persistencia/          # Modelos, repositorios y migraciones
+│       └── web/                   # Vistas, formularios, plantillas y estáticos
+├── tests/
+│   ├── aceptacion/                # Flujos completos por HTTP
+│   ├── integracion/               # Repositorios y base de datos
+│   └── unit/                      # Dominio y casos de uso
+├── manage.py                      # Comandos de Django
+├── Dockerfile                     # Imagen de la aplicación
+└── docker-compose.yml             # Aplicación y PostgreSQL para desarrollo
+```
 
 La regla de dependencia se verifica automáticamente:
 
@@ -130,7 +156,7 @@ La prueba gratuita de Railway trae $5 de crédito único por 30 días y no pide 
 | Ember | `#B4531A` | Enlaces y texto naranja sobre fondos claros (5,0:1). |
 | Charcoal | `#252321` | Textos y botones secundarios. |
 | Warm White / Sand / Peach | `#F7F5F1` / `#EAE4DC` / `#FCE9DA` | Fondo general, superficies y resaltados. |
-| Success / Amber / Flame | `#287A56` / `#FFB84D` / `#E84932` | Implementado / Parcial / No implementado (siempre con símbolo y texto). |
+| Success / Amber / Flame | `#287A56` / `#FFB84D` / `#E84932` | Implementado / Parcial / No implementado (se distingue con color y texto). |
 
 - Tipografía: Plus Jakarta Sans, incluida en el proyecto. Bootstrap y los íconos también se sirven localmente, sin depender de CDN.
 - Avatar: `static/drakon/avatar/`. Hay **máximo un Drakon por pantalla**, y nunca junto a tablas de datos de hallazgos. Poses: `bienvenida` (ingreso), `hero` (aviso de inicio), `vacio` (estados vacíos), `error` (bloqueos), `listo` (confirmaciones), `ayuda` (consejos), `celebracion` (auditoría cerrada).
@@ -147,14 +173,14 @@ Todas las entidades tienen sus cuatro operaciones. Lo que cambia por entidad son
 
 | Entidad | Crear | Consultar | Editar | Eliminar | Reglas |
 |---|---|---|---|---|---|
-| Auditoría | ✅ | ✅ lista, detalle, inicio | ✅ en borrador o ejecución | ✅ con confirmación | Una auditoría **cerrada** no se elimina ni se edita. |
-| Control (catálogo) | ✅ rol admin | ✅ todos | ✅ rol admin | ✅ rol admin | Código único. No se elimina si una auditoría lo usa. |
-| Selección de controles | ✅ | ✅ | ✅ en borrador | ✅ al desmarcarlo | Entre 10 y 15 para iniciar la ejecución. |
-| Evaluación de control | ✅ | ✅ | ✅ en ejecución | — | La evaluación se corrige; no se borra. «No aplicable» exige justificación. |
-| Evidencia | ✅ | ✅ y descarga | ✅ en ejecución | ✅ con confirmación | Archivo PDF/PNG/JPG validado o referencia. |
-| Hallazgo | ✅ | ✅ | ✅ en ejecución o revisión | ✅ con confirmación | Conserva su código H-nn; no aplica a controles «No aplicable». |
-| Recomendación | ✅ | ✅ | ✅ en ejecución o revisión | ✅ con confirmación | Cada hallazgo necesita al menos una para cerrar. |
-| Informe | ✅ genera versiones | ✅ PDF | — | — | Es una instantánea: no se edita, se emite una nueva versión. |
+| Auditoría | Sí | Sí lista, detalle, inicio | Sí en borrador o ejecución | Sí con confirmación | Una auditoría **cerrada** no se elimina ni se edita. |
+| Control (catálogo) | Sí rol admin | Sí todos | Sí rol admin | Sí rol admin | Código único. No se elimina si una auditoría lo usa. |
+| Selección de controles | Sí | Sí | Sí en borrador | Sí al desmarcarlo | Entre 10 y 15 para iniciar la ejecución. |
+| Evaluación de control | Sí | Sí | Sí en ejecución | — | La evaluación se corrige; no se borra. «No aplicable» exige justificación. |
+| Evidencia | Sí | Sí y descarga | Sí en ejecución | Sí con confirmación | Archivo PDF/PNG/JPG validado o referencia. |
+| Hallazgo | Sí | Sí | Sí en ejecución o revisión | Sí con confirmación | Conserva su código H-nn; no aplica a controles «No aplicable». |
+| Recomendación | Sí | Sí | Sí en ejecución o revisión | Sí con confirmación | Cada hallazgo necesita al menos una para cerrar. |
+| Informe | Sí genera versiones | Sí PDF | — | — | Es una instantánea: no se edita, se emite una nueva versión. |
 
 Ninguna eliminación ocurre con un GET: siempre hay una página de confirmación que muestra lo que se afecta. Cada auditor solo ve y modifica sus propias auditorías (RNF04).
 
@@ -162,13 +188,13 @@ Ninguna eliminación ocurre con un GET: siempre hay una página de confirmación
 
 | Requisito | Dominio y casos de uso | Interfaz web |
 |---|---|---|
-| RF01 Registrar auditoría | ✅ | ✅ |
-| RF02 Gestionar y seleccionar controles | ✅ | ✅ |
-| RF03 Evaluar controles | ✅ | ✅ |
-| RF04 Registrar evidencias | ✅ | ✅ (archivo o referencia; valida el tipo real del archivo) |
-| RF05/RF06 Hallazgos y recomendaciones | ✅ | ✅ |
-| RF07 Indicadores | ✅ | ✅ (dashboard y detalle) |
-| RF08 Informe PDF | ✅ | ✅ (botón en el detalle; versiones preliminares y final) |
-| RF09 Dashboard | ✅ | ✅ |
+| RF01 Registrar auditoría | Sí | Sí |
+| RF02 Gestionar y seleccionar controles | Sí | Sí |
+| RF03 Evaluar controles | Sí | Sí |
+| RF04 Registrar evidencias | Sí | Sí (archivo o referencia; valida el tipo real del archivo) |
+| RF05/RF06 Hallazgos y recomendaciones | Sí | Sí |
+| RF07 Indicadores | Sí | Sí (dashboard y detalle) |
+| RF08 Informe PDF | Sí | Sí (botón en el detalle; versiones preliminares y final) |
+| RF09 Dashboard | Sí | Sí |
 
 > Los indicadores son descriptivos: no constituyen certificación ni sustituyen el juicio profesional del auditor. Todos los datos de Empresa ABC son ficticios.
