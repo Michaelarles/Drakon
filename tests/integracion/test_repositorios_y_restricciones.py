@@ -14,6 +14,7 @@ from drakon.infraestructura.persistencia.models import (
     AuditoriaModel,
     ControlModel,
     EvaluacionControlModel,
+    HallazgoEvidenciaModel,
     HallazgoModel,
 )
 
@@ -38,7 +39,8 @@ def test_cp12_persistencia_del_agregado_completo(usuario):
     assert len(recargada.evaluaciones) == 13
     assert [h.codigo for h in recargada.hallazgos] == ["H-01", "H-02", "H-03", "H-04"]
     assert all(h.recomendaciones for h in recargada.hallazgos)
-    assert len(recargada.todas_las_evidencias) == 12
+    assert len(recargada.todas_las_evidencias) == 16  # 12 de la evaluación + 1 por cada hallazgo
+    assert all(h.codigos_evidencia for h in recargada.hallazgos)
     ind = c.consultar_indicadores().ejecutar(a.id)
     assert (ind.cumplimiento_base, ind.indice_ponderado) == (33.3, 54.2)
 
@@ -138,3 +140,30 @@ def test_inicializar_carga_demo_solo_si_esta_vacia(monkeypatch):
     call_command("inicializar", verbosity=0)
     call_command("inicializar", verbosity=0)  # idempotente: no duplica
     assert AuditoriaModel.objects.count() == 1
+
+
+def test_vinculos_hallazgo_evidencia_persisten_y_son_unicos(usuario):
+    call_command("cargar_empresa_abc", usuario="auditor", verbosity=0)
+    a = c.auditorias().listar()[0]
+    h1 = a.hallazgo("H-01")
+    otra = next(e.codigo for e in a.todas_las_evidencias if e.codigo not in h1.codigos_evidencia)
+    c.vincular_evidencia_hallazgo().ejecutar(a.id, "H-01", otra)
+    recargada = c.auditorias().obtener(a.id)
+    assert recargada.hallazgo("H-01").codigos_evidencia == h1.codigos_evidencia + [otra]  # conserva el orden
+
+    c.desvincular_evidencia_hallazgo().ejecutar(a.id, "H-01", otra)
+    assert c.auditorias().obtener(a.id).hallazgo("H-01").codigos_evidencia == h1.codigos_evidencia
+
+    vinculo = HallazgoEvidenciaModel.objects.filter(hallazgo__codigo="H-01").first()
+    with pytest.raises(IntegrityError), transaction.atomic():
+        HallazgoEvidenciaModel.objects.create(hallazgo=vinculo.hallazgo, evidencia=vinculo.evidencia)
+
+
+def test_eliminar_evidencia_borra_su_vinculo_con_el_hallazgo(usuario):
+    call_command("cargar_empresa_abc", usuario="auditor", verbosity=0)
+    a = c.auditorias().listar()[0]
+    codigo = a.hallazgo("H-01").codigos_evidencia[0]
+    c.cambiar_estado().ejecutar(a.id, "devolver")
+    c.eliminar_evidencia().ejecutar(a.id, codigo)
+    assert c.auditorias().obtener(a.id).hallazgo("H-01").codigos_evidencia == []
+    assert not HallazgoEvidenciaModel.objects.filter(hallazgo__codigo="H-01").exists()

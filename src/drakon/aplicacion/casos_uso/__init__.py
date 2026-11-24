@@ -6,6 +6,8 @@ No conocen Django ni la base de datos: solo los puertos.
 
 from __future__ import annotations
 
+import io
+import zipfile
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 
@@ -26,9 +28,41 @@ from drakon.dominio.informe import Informe, construir_contenido
 from drakon.dominio.valores import CategoriaControl, EstadoAuditoria, EstadoEvaluacion, Prioridad, Severidad
 
 TAMANO_MAX_EVIDENCIA = 5 * 1024 * 1024  # 5 MB
-TIPOS_EVIDENCIA = {"application/pdf": ".pdf", "image/png": ".png", "image/jpeg": ".jpg"}
-# Firmas («números mágicos») para no confiar solo en la extensión del archivo
-FIRMAS_EVIDENCIA = {"application/pdf": b"%PDF", "image/png": b"\x89PNG", "image/jpeg": b"\xff\xd8\xff"}
+TIPO_DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+TIPOS_EVIDENCIA = {
+    "application/pdf": ".pdf",
+    TIPO_DOCX: ".docx",
+    "image/png": ".png",
+    "image/jpeg": ".jpg",
+}
+# Firmas («números mágicos») para no confiar solo en la extensión del archivo.
+# Un .docx es un ZIP: además de la firma se verifica que contenga word/document.xml.
+FIRMAS_EVIDENCIA = {
+    "application/pdf": b"%PDF",
+    TIPO_DOCX: b"PK\x03\x04",
+    "image/png": b"\x89PNG",
+    "image/jpeg": b"\xff\xd8\xff",
+}
+
+
+def validar_archivo_evidencia(archivo: ArchivoAdjunto) -> None:
+    """Tipo permitido, tamaño máximo y contenido real coherente con el tipo."""
+    if archivo.tipo not in TIPOS_EVIDENCIA:
+        raise DatoInvalido("Solo se admiten archivos PDF, Word (.docx), PNG o JPG.", "archivo")
+    if not archivo.contenido:
+        raise DatoInvalido("El archivo está vacío.", "archivo")
+    if len(archivo.contenido) > TAMANO_MAX_EVIDENCIA:
+        raise DatoInvalido("El archivo supera el tamaño máximo de 5 MB.", "archivo")
+    invalido = DatoInvalido("El contenido del archivo no corresponde a un PDF, Word, PNG o JPG válido.", "archivo")
+    if not archivo.contenido.startswith(FIRMAS_EVIDENCIA[archivo.tipo]):
+        raise invalido
+    if archivo.tipo == TIPO_DOCX:
+        try:
+            with zipfile.ZipFile(io.BytesIO(archivo.contenido)) as z:
+                if "word/document.xml" not in z.namelist():
+                    raise invalido
+        except zipfile.BadZipFile:
+            raise invalido from None
 
 
 # --------------------------------------------------------------------- RF01
@@ -184,14 +218,7 @@ class RegistrarEvidencia:
 
     @staticmethod
     def _validar_archivo(archivo: ArchivoAdjunto) -> None:
-        if archivo.tipo not in TIPOS_EVIDENCIA:
-            raise DatoInvalido("Solo se admiten archivos PDF, PNG o JPG.", "archivo")
-        if len(archivo.contenido) > TAMANO_MAX_EVIDENCIA:
-            raise DatoInvalido("El archivo supera el tamaño máximo de 5 MB.", "archivo")
-        if not archivo.contenido:
-            raise DatoInvalido("El archivo está vacío.", "archivo")
-        if not archivo.contenido.startswith(FIRMAS_EVIDENCIA[archivo.tipo]):
-            raise DatoInvalido("El contenido del archivo no corresponde a un PDF, PNG o JPG válido.", "archivo")
+        validar_archivo_evidencia(archivo)
 
 
 class EliminarEvidencia:
@@ -325,6 +352,65 @@ class EliminarRecomendacion:
         r = a.eliminar_recomendacion(codigo)
         self.auditorias.guardar(a)
         return r
+
+
+# ------------------------------------------- evidencias que respaldan hallazgos
+class RegistrarEvidenciaHallazgo:
+    """Sube una evidencia nueva (archivo o referencia) y la vincula al hallazgo."""
+
+    def __init__(self, auditorias: RepositorioAuditorias, almacen: AlmacenEvidencias):
+        self.auditorias, self.almacen = auditorias, almacen
+
+    def ejecutar(self, id_auditoria: int, codigo_hallazgo: str, datos: DatosEvidencia) -> Evidencia:
+        a = self.auditorias.obtener(id_auditoria)
+        if datos.archivo is not None:
+            validar_archivo_evidencia(datos.archivo)
+        # Valida en el dominio antes de guardar el archivo, para no dejar archivos huérfanos.
+        a.validar_evidencia_de_hallazgo(
+            codigo_hallazgo,
+            datos.descripcion,
+            datos.fuente,
+            datos.fecha,
+            datos.es_simulada,
+            datos.referencia,
+            "provisional" if datos.archivo else None,
+        )
+        archivo_id, archivo_nombre = None, ""
+        if datos.archivo is not None:
+            archivo_id, archivo_nombre = self.almacen.guardar(datos.archivo), datos.archivo.nombre
+        evidencia = a.registrar_evidencia_de_hallazgo(
+            codigo_hallazgo,
+            datos.descripcion,
+            datos.fuente,
+            datos.fecha,
+            datos.es_simulada,
+            datos.referencia,
+            archivo_id,
+            archivo_nombre,
+        )
+        self.auditorias.guardar(a)
+        return evidencia
+
+
+class VincularEvidenciaHallazgo:
+    def __init__(self, auditorias: RepositorioAuditorias):
+        self.auditorias = auditorias
+
+    def ejecutar(self, id_auditoria: int, codigo_hallazgo: str, codigo_evidencia: str) -> Evidencia:
+        a = self.auditorias.obtener(id_auditoria)
+        e = a.vincular_evidencia(codigo_hallazgo, codigo_evidencia)
+        self.auditorias.guardar(a)
+        return e
+
+
+class DesvincularEvidenciaHallazgo:
+    def __init__(self, auditorias: RepositorioAuditorias):
+        self.auditorias = auditorias
+
+    def ejecutar(self, id_auditoria: int, codigo_hallazgo: str, codigo_evidencia: str) -> None:
+        a = self.auditorias.obtener(id_auditoria)
+        a.desvincular_evidencia(codigo_hallazgo, codigo_evidencia)
+        self.auditorias.guardar(a)
 
 
 # --------------------------------------------------------- catálogo (RF02)
@@ -482,6 +568,9 @@ __all__ = [
     "EliminarAuditoria",
     "EditarEvidencia",
     "EditarHallazgo",
+    "RegistrarEvidenciaHallazgo",
+    "VincularEvidenciaHallazgo",
+    "DesvincularEvidenciaHallazgo",
     "EliminarHallazgo",
     "EditarRecomendacion",
     "EliminarRecomendacion",

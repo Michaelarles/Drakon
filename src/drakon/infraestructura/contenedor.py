@@ -128,3 +128,15 @@ def guardar_control():
 
 def eliminar_control():
     return cu.EliminarControl(catalogo())
+
+
+def registrar_evidencia_hallazgo():
+    return cu.RegistrarEvidenciaHallazgo(auditorias(), almacen())
+
+
+def vincular_evidencia_hallazgo():
+    return cu.VincularEvidenciaHallazgo(auditorias())
+
+
+def desvincular_evidencia_hallazgo():
+    return cu.DesvincularEvidenciaHallazgo(auditorias())

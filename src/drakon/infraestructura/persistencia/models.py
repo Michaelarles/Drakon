@@ -156,6 +156,9 @@ class HallazgoModel(models.Model):
     causa = models.TextField()
     efecto_riesgo = models.TextField()
     severidad = models.CharField(max_length=5, choices=NIVELES)
+    evidencias = models.ManyToManyField(
+        "EvidenciaModel", through="HallazgoEvidenciaModel", related_name="hallazgos", blank=True
+    )
 
     class Meta:
         db_table = "hallazgo"
@@ -167,6 +170,21 @@ class HallazgoModel(models.Model):
                 condition=~Q(condicion="") & ~Q(criterio="") & ~Q(causa="") & ~Q(efecto_riesgo=""),
                 name="hallazgo_campos_obligatorios",
             ),
+        ]
+
+
+class HallazgoEvidenciaModel(models.Model):
+    """Evidencias que respaldan cada hallazgo (relación muchos a muchos)."""
+
+    hallazgo = models.ForeignKey(HallazgoModel, on_delete=models.CASCADE, related_name="vinculos_evidencia")
+    evidencia = models.ForeignKey(EvidenciaModel, on_delete=models.CASCADE, related_name="vinculos_hallazgo")
+    orden = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        db_table = "hallazgo_evidencia"
+        ordering = ["orden", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["hallazgo", "evidencia"], name="hallazgo_evidencia_unica"),
         ]
 
 

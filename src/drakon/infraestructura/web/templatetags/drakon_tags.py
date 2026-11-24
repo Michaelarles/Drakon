@@ -35,3 +35,22 @@ def ancho(valor):
 @register.filter
 def restar(a, b):
     return (a or 0) - (b or 0)
+
+
+@register.filter
+def tipo_archivo(nombre):
+    """Clase de archivo por su extensión: 'imagen', 'pdf', 'word' o '' (sin archivo)."""
+    nombre = (nombre or "").lower()
+    if nombre.endswith((".png", ".jpg", ".jpeg")):
+        return "imagen"
+    if nombre.endswith(".pdf"):
+        return "pdf"
+    if nombre.endswith(".docx"):
+        return "word"
+    return ""
+
+
+@register.filter
+def lista(dic, clave):
+    """Valor de un diccionario de listas; lista vacía si no existe la clave."""
+    return dic.get(clave, []) if dic else []

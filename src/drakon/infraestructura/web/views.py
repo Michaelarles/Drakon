@@ -12,7 +12,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 
-from drakon.aplicacion.casos_uso import DatosAuditoria, DatosControl, DatosEvidencia, DatosHallazgo
+from drakon.aplicacion.casos_uso import TIPO_DOCX, DatosAuditoria, DatosControl, DatosEvidencia, DatosHallazgo
 from drakon.aplicacion.puertos import ArchivoAdjunto
 from drakon.dominio.errores import ErrorDeDominio, NoEncontrado
 from drakon.dominio.indicadores import FORMULA_BASE, FORMULA_PONDERADA, CalculadoraIndicadores
@@ -455,6 +455,7 @@ def _contexto_evaluacion(auditoria, id_control, form=None, form_evidencia=None):
         "evaluados": evaluados,
         "total": len(ids),
         "hallazgos_control": [h for h in auditoria.hallazgos if h.id_control == id_control],
+        "respaldos": {x.codigo: auditoria.hallazgos_de_evidencia(x.codigo) for x in ev.evidencias},
         "falta_evidencia": {
             e.id_control for e in auditoria.evaluaciones if e.estado.exige_evidencia and not e.evidencias
         },
@@ -496,7 +497,15 @@ def evaluar_control(request, auditoria, id_control):
     return render(request, "drakon/evaluacion.html", _contexto_evaluacion(auditoria, id_control))
 
 
-TIPOS_POR_EXTENSION = {".pdf": "application/pdf", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}
+TIPOS_POR_EXTENSION = {
+    ".pdf": "application/pdf",
+    ".docx": TIPO_DOCX,
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+}
+# Tipos que el navegador puede mostrar; el resto (Word) se descarga
+TIPOS_EN_LINEA = {"application/pdf", "image/png", "image/jpeg"}
 
 
 def _tipo_mime(archivo) -> str:
@@ -551,7 +560,8 @@ def evidencia_eliminar(request, auditoria, codigo):
             request,
             f"¿Eliminar la evidencia {codigo}?",
             evidencia.descripcion,
-            ["El archivo adjunto, si lo tiene", "Su vínculo con el control"],
+            ["El archivo adjunto, si lo tiene", "Su vínculo con el control"]
+            + [f"El respaldo del hallazgo {h}" for h in auditoria.hallazgos_de_evidencia(codigo)],
             reverse("evaluar_control", args=[auditoria.id, id_control]),
         )
     try:
@@ -620,7 +630,9 @@ def evidencia_archivo(request, auditoria, codigo):
     except NoEncontrado:
         raise Http404 from None
     resp = HttpResponse(archivo.contenido, content_type=archivo.tipo)
-    resp["Content-Disposition"] = f'inline; filename="{archivo.nombre}"'
+    disposicion = "inline" if archivo.tipo in TIPOS_EN_LINEA else "attachment"
+    nombre = archivo.nombre.replace('"', "").replace("\r", "").replace("\n", "")
+    resp["Content-Disposition"] = f'{disposicion}; filename="{nombre}"'
     resp["X-Content-Type-Options"] = "nosniff"
     return resp
 
@@ -637,7 +649,16 @@ def _controles_para_hallazgo(auditoria):
 @con_auditoria
 def hallazgos(request, auditoria):
     controles = c.catalogo().obtener_varios(auditoria.ids_controles)
-    filas = [(h, controles.get(h.id_control)) for h in auditoria.hallazgos]
+    todas = auditoria.todas_las_evidencias
+    filas = [
+        (
+            h,
+            controles.get(h.id_control),
+            auditoria.evidencias_de_hallazgo(h.codigo),
+            [e for e in todas if e.codigo not in h.codigos_evidencia],
+        )
+        for h in auditoria.hallazgos
+    ]
     return render(
         request,
         "drakon/hallazgos.html",
@@ -645,6 +666,8 @@ def hallazgos(request, auditoria):
             "a": auditoria,
             "filas": filas,
             "form_rec": RecomendacionForm(),
+            "form_evidencia": EvidenciaForm(initial={"fecha": auditoria.fecha_inicio, "es_simulada": True}),
+            "abrir_evidencia": request.GET.get("evidencia"),
             "editable": auditoria.estado in (EstadoAuditoria.EN_EJECUCION, EstadoAuditoria.EN_REVISION),
             "problemas_cierre": auditoria.problemas_para_cierre(),
         },
@@ -874,6 +897,94 @@ def recomendacion_agregar(request, auditoria, codigo):
         errores = "; ".join(e for lista in form.errors.values() for e in lista)
         messages.error(request, f"No se agregó la recomendación: {errores}")
     return redirect("hallazgos", id_auditoria=auditoria.id)
+
+
+# ------------------------------------------- evidencias que respaldan hallazgos
+def _volver_al_hallazgo(auditoria, codigo):
+    return redirect(reverse("hallazgos", args=[auditoria.id]) + f"#{codigo}")
+
+
+@require_POST
+@con_auditoria
+def hallazgo_evidencia_agregar(request, auditoria, codigo):
+    """Sube una evidencia nueva (PDF, Word, imagen o referencia) y la vincula al hallazgo."""
+    try:
+        auditoria.hallazgo(codigo)
+    except NoEncontrado:
+        raise Http404 from None
+    form = EvidenciaForm(request.POST, request.FILES)
+    if form.is_valid():
+        d = form.cleaned_data
+        archivo = None
+        if d.get("archivo"):
+            f = d["archivo"]
+            archivo = ArchivoAdjunto(nombre=f.name, tipo=_tipo_mime(f), contenido=f.read())
+        try:
+            ev = c.registrar_evidencia_hallazgo().ejecutar(
+                auditoria.id,
+                codigo,
+                DatosEvidencia(
+                    descripcion=d["descripcion"],
+                    fuente=d["fuente"],
+                    fecha=d["fecha"],
+                    es_simulada=d["es_simulada"],
+                    referencia=d["referencia"],
+                    archivo=archivo,
+                ),
+            )
+            messages.success(request, f"Evidencia {ev.codigo} registrada y vinculada al hallazgo {codigo}.")
+            return _volver_al_hallazgo(auditoria, codigo)
+        except ErrorDeDominio as e:
+            messages.error(request, f"No se registró la evidencia: {e.mensaje}")
+    else:
+        errores = " ".join(e for lista in form.errors.values() for e in lista)
+        messages.error(request, f"No se registró la evidencia: {errores}")
+    return redirect(reverse("hallazgos", args=[auditoria.id]) + f"?evidencia={codigo}#{codigo}")
+
+
+@require_POST
+@con_auditoria
+def hallazgo_evidencia_vincular(request, auditoria, codigo):
+    """Vincula una evidencia ya registrada (por ejemplo, la de la evaluación del control)."""
+    codigo_evidencia = request.POST.get("evidencia", "")
+    if not codigo_evidencia:
+        messages.error(request, "Seleccione la evidencia que respalda el hallazgo.")
+        return _volver_al_hallazgo(auditoria, codigo)
+    try:
+        c.vincular_evidencia_hallazgo().ejecutar(auditoria.id, codigo, codigo_evidencia)
+        messages.success(request, f"Evidencia {codigo_evidencia} vinculada al hallazgo {codigo}.")
+    except ErrorDeDominio as e:
+        messages.error(request, e.mensaje)
+    return _volver_al_hallazgo(auditoria, codigo)
+
+
+@con_auditoria
+def hallazgo_evidencia_quitar(request, auditoria, codigo, codigo_evidencia):
+    try:
+        h = auditoria.hallazgo(codigo)
+        evidencia = auditoria.evidencia(codigo_evidencia)
+    except NoEncontrado:
+        raise Http404 from None
+    if codigo_evidencia not in h.codigos_evidencia:
+        raise Http404
+    if request.method == "POST":
+        try:
+            c.desvincular_evidencia_hallazgo().ejecutar(auditoria.id, codigo, codigo_evidencia)
+            messages.success(request, f"La evidencia {codigo_evidencia} ya no respalda el hallazgo {codigo}.")
+        except ErrorDeDominio as e:
+            messages.error(request, e.mensaje)
+        return _volver_al_hallazgo(auditoria, codigo)
+    consecuencias = ["La evidencia sigue registrada en la evaluación del control"]
+    if len(h.codigos_evidencia) == 1:
+        consecuencias.append("Para cerrar la auditoría, cada hallazgo necesita al menos una evidencia")
+    return confirmar(
+        request,
+        f"¿Quitar la evidencia {codigo_evidencia} del hallazgo {codigo}?",
+        evidencia.descripcion,
+        consecuencias,
+        reverse("hallazgos", args=[auditoria.id]) + f"#{codigo}",
+        boton="Quitar",
+    )
 
 
 # --------------------------------------------------- informe PDF (RF08)

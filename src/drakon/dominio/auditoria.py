@@ -67,6 +67,8 @@ class Hallazgo:
     efecto: str
     severidad: Severidad
     recomendaciones: list[Recomendacion] = field(default_factory=list)
+    # Códigos de las evidencias (EV-nn) de la auditoría que respaldan el hallazgo
+    codigos_evidencia: list[str] = field(default_factory=list)
     id: int | None = None
 
 
@@ -221,9 +223,10 @@ class Auditoria:
         referencia: str = "",
         archivo_id: str | None = None,
         archivo_nombre: str = "",
+        estados_permitidos: tuple[EstadoAuditoria, ...] = (EstadoAuditoria.EN_EJECUCION,),
     ) -> Evidencia:
         """Valida y construye la evidencia sin agregarla (útil antes de guardar archivos)."""
-        self._exigir_estado(EstadoAuditoria.EN_EJECUCION)
+        self._exigir_estado(*estados_permitidos)
         self.evaluacion(id_control)
         if fecha is None:
             raise DatoInvalido("La fecha de la evidencia es obligatoria.", "fecha")
@@ -247,6 +250,9 @@ class Auditoria:
             for e in ev.evidencias:
                 if e.codigo == codigo:
                     ev.evidencias.remove(e)
+                    for h in self.hallazgos:  # deja de respaldar los hallazgos que la citaban
+                        if codigo in h.codigos_evidencia:
+                            h.codigos_evidencia.remove(codigo)
                     return e
         raise NoEncontrado(f"No existe la evidencia {codigo}.")
 
@@ -405,6 +411,87 @@ class Auditoria:
                     return h, r
         raise NoEncontrado(f"No existe la recomendación {codigo}.")
 
+    # ------------------------------------------------ evidencias de hallazgos
+    _ESTADOS_HALLAZGO = (EstadoAuditoria.EN_EJECUCION, EstadoAuditoria.EN_REVISION)
+
+    def validar_evidencia_de_hallazgo(
+        self,
+        codigo_hallazgo: str,
+        descripcion: str,
+        fuente: str,
+        fecha: date,
+        es_simulada: bool = True,
+        referencia: str = "",
+        archivo_id: str | None = None,
+        archivo_nombre: str = "",
+    ) -> Evidencia:
+        """Valida una evidencia nueva para un hallazgo sin agregarla."""
+        hallazgo = self.hallazgo(codigo_hallazgo)
+        return self.validar_evidencia(
+            hallazgo.id_control,
+            descripcion,
+            fuente,
+            fecha,
+            es_simulada,
+            referencia,
+            archivo_id,
+            archivo_nombre,
+            estados_permitidos=self._ESTADOS_HALLAZGO,
+        )
+
+    def registrar_evidencia_de_hallazgo(
+        self,
+        codigo_hallazgo: str,
+        descripcion: str,
+        fuente: str,
+        fecha: date,
+        es_simulada: bool = True,
+        referencia: str = "",
+        archivo_id: str | None = None,
+        archivo_nombre: str = "",
+    ) -> Evidencia:
+        """Registra una evidencia nueva y la vincula al hallazgo.
+
+        La evidencia queda también en la evaluación del control del hallazgo, de modo que
+        se conserva la trazabilidad auditoría → evaluación → evidencia → hallazgo.
+        """
+        evidencia = self.validar_evidencia_de_hallazgo(
+            codigo_hallazgo, descripcion, fuente, fecha, es_simulada, referencia, archivo_id, archivo_nombre
+        )
+        hallazgo = self.hallazgo(codigo_hallazgo)
+        self.evaluacion(hallazgo.id_control).evidencias.append(evidencia)
+        hallazgo.codigos_evidencia.append(evidencia.codigo)
+        return evidencia
+
+    def vincular_evidencia(self, codigo_hallazgo: str, codigo_evidencia: str) -> Evidencia:
+        """Usa una evidencia ya registrada en la auditoría como soporte del hallazgo."""
+        self._exigir_estado(*self._ESTADOS_HALLAZGO)
+        hallazgo = self.hallazgo(codigo_hallazgo)
+        evidencia = self.evidencia(codigo_evidencia)
+        if codigo_evidencia in hallazgo.codigos_evidencia:
+            raise ReglaDeNegocioViolada(
+                f"La evidencia {codigo_evidencia} ya respalda el hallazgo {codigo_hallazgo}.", "evidencia"
+            )
+        hallazgo.codigos_evidencia.append(codigo_evidencia)
+        return evidencia
+
+    def desvincular_evidencia(self, codigo_hallazgo: str, codigo_evidencia: str) -> None:
+        """Quita el vínculo; la evidencia sigue registrada en la evaluación del control."""
+        self._exigir_estado(*self._ESTADOS_HALLAZGO)
+        hallazgo = self.hallazgo(codigo_hallazgo)
+        if codigo_evidencia not in hallazgo.codigos_evidencia:
+            raise NoEncontrado(f"La evidencia {codigo_evidencia} no está vinculada al hallazgo {codigo_hallazgo}.")
+        hallazgo.codigos_evidencia.remove(codigo_evidencia)
+
+    def evidencias_de_hallazgo(self, codigo_hallazgo: str) -> list[Evidencia]:
+        hallazgo = self.hallazgo(codigo_hallazgo)
+        por_codigo = {e.codigo: e for e in self.todas_las_evidencias}
+        return [por_codigo[c] for c in hallazgo.codigos_evidencia if c in por_codigo]
+
+    def hallazgos_de_evidencia(self, codigo_evidencia: str) -> list[str]:
+        """Códigos de los hallazgos que esta evidencia respalda."""
+        return [h.codigo for h in self.hallazgos if codigo_evidencia in h.codigos_evidencia]
+
     # -------------------------------------------------------- eliminación
     def verificar_eliminable(self) -> None:
         """Una auditoría cerrada es un registro de evidencia: no se elimina."""
@@ -434,6 +521,8 @@ class Auditoria:
         for h in self.hallazgos:
             if not h.recomendaciones:
                 problemas.append(f"El hallazgo {h.codigo} no tiene recomendación asociada.")
+            if not h.codigos_evidencia:
+                problemas.append(f"El hallazgo {h.codigo} no tiene evidencia que lo respalde.")
         return problemas
 
     def enviar_a_revision(self) -> None:

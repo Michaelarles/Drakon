@@ -71,6 +71,7 @@
   <tr><td class="k">Criterio</td><td>{{ h.criterio }}</td></tr>
   <tr><td class="k">Causa</td><td>{{ h.causa }}</td></tr>
   <tr><td class="k">Efecto o riesgo</td><td>{{ h.efecto }}</td></tr>
+  <tr><td class="k">Evidencias que lo respaldan</td><td>{% for e in h.evidencias %}<b>{{ e.codigo }}</b> {{ e.descripcion }}{% if e.soporte %} <span class="muted">({{ e.soporte }})</span>{% endif %}{% if not forloop.last %}<br>{% endif %}{% empty %}<span class="muted">Sin evidencia vinculada</span>{% endfor %}</td></tr>
 </table>
 {% empty %}<p class="muted">No se documentaron hallazgos.</p>{% endfor %}
 
@@ -85,7 +86,7 @@
 <h2>7. Anexo de evidencias</h2>
 <table>
   <tr><th style="width:9%">Código</th><th style="width:9%">Control</th><th>Descripción</th><th style="width:16%">Fuente</th><th style="width:11%">Fecha</th><th style="width:10%">Simulada</th></tr>
-  {% for e in inf.evidencias %}<tr><td>{{ e.codigo }}</td><td>{{ e.control }}</td><td>{{ e.descripcion }}{% if e.referencia %}<br><span class="muted">{{ e.referencia }}</span>{% endif %}</td><td>{{ e.fuente }}</td><td>{{ e.fecha }}</td><td>{{ e.simulada|yesno:"Sí,No" }}</td></tr>{% endfor %}
+  {% for e in inf.evidencias %}<tr><td>{{ e.codigo }}</td><td>{{ e.control }}</td><td>{{ e.descripcion }}{% if e.hallazgos %}<br><span class="muted">Respalda: {{ e.hallazgos|join:", " }}</span>{% endif %}{% if e.referencia %}<br><span class="muted">{{ e.referencia }}</span>{% endif %}</td><td>{{ e.fuente }}</td><td>{{ e.fecha }}</td><td>{{ e.simulada|yesno:"Sí,No" }}</td></tr>{% endfor %}
 </table>
 
 <h2>8. Limitaciones</h2>

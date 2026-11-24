@@ -5,7 +5,7 @@ from datetime import date
 import pytest
 
 from drakon.dominio.auditoria import Auditoria
-from drakon.dominio.errores import DatoInvalido, ReglaDeNegocioViolada
+from drakon.dominio.errores import DatoInvalido, NoEncontrado, ReglaDeNegocioViolada
 from drakon.dominio.indicadores import CalculadoraIndicadores
 from drakon.dominio.valores import EstadoAuditoria, EstadoEvaluacion
 from tests.fakes import DATOS_ABC, EJEMPLO_ABC, RepoCatalogoMemoria
@@ -37,6 +37,16 @@ def evaluada_abc():
         )
         if EstadoEvaluacion(estado).exige_evidencia:
             a.registrar_evidencia(c.id, "Soporte", "Documental", date(2026, 11, 10), referencia="DOC-1")
+    return a
+
+
+def con_hallazgos_respaldados(codigos=("8.8", "5.24", "8.13")):
+    """Auditoría en revisión con hallazgos completos: recomendación y evidencia."""
+    a = evaluada_abc()
+    a.enviar_a_revision()
+    for codigo in codigos:
+        h = a.registrar_hallazgo(CAT.por_codigo(codigo).id, "c", "cr", "ca", "ef", "ALTA", "Rec", "ALTA", 60)
+        a.registrar_evidencia_de_hallazgo(h.codigo, "Acta", "Entrevista", date(2026, 11, 13), referencia="ACTA")
     return a
 
 
@@ -156,16 +166,19 @@ def test_cp08_cierre_exige_tres_hallazgos_con_recomendacion():
     with pytest.raises(ReglaDeNegocioViolada, match="H-03"):
         a.cerrar()
     a.agregar_recomendacion("H-03", "Pruebas trimestrales", "MEDIA", 90)
+    with pytest.raises(ReglaDeNegocioViolada, match="H-01 no tiene evidencia"):
+        a.cerrar()
+    for h in a.hallazgos:
+        a.registrar_evidencia_de_hallazgo(h.codigo, "Acta", "Entrevista", date(2026, 11, 13), referencia="ACTA")
     a.cerrar()
     assert a.estado == EstadoAuditoria.CERRADA
 
 
 def test_cp13_auditoria_cerrada_es_de_solo_lectura():
-    a = evaluada_abc()
-    a.enviar_a_revision()
-    for codigo in ("8.8", "5.24", "8.13"):
-        a.registrar_hallazgo(CAT.por_codigo(codigo).id, "c", "cr", "ca", "ef", "ALTA", "Rec", "ALTA", 60)
+    a = con_hallazgos_respaldados()
     a.cerrar()
+    with pytest.raises(ReglaDeNegocioViolada, match="cerrada"):
+        a.vincular_evidencia("H-01", "EV-01")
     with pytest.raises(ReglaDeNegocioViolada, match="cerrada"):
         a.registrar_hallazgo(CAT.por_codigo("8.15").id, "c", "cr", "ca", "ef", "MEDIA")
 
@@ -218,11 +231,49 @@ def test_editar_evidencia_y_registrar_hallazgo_invalido_no_deja_rastro():
 
 
 def test_auditoria_cerrada_no_se_elimina():
-    a = evaluada_abc()
-    a.enviar_a_revision()
-    for codigo in ("8.8", "5.24", "8.13"):
-        a.registrar_hallazgo(CAT.por_codigo(codigo).id, "c", "cr", "ca", "ef", "ALTA", "Rec", "ALTA", 60)
+    a = con_hallazgos_respaldados()
     a.verificar_eliminable()
     a.cerrar()
     with pytest.raises(ReglaDeNegocioViolada, match="cerrada"):
         a.verificar_eliminable()
+
+
+# ------------------------------------------- evidencias que respaldan hallazgos
+def test_evidencia_nueva_del_hallazgo_queda_en_su_control_y_vinculada():
+    a = evaluada_abc()
+    a.enviar_a_revision()  # también se puede respaldar un hallazgo durante la revisión
+    h = a.registrar_hallazgo(CAT.por_codigo("8.8").id, "c", "cr", "ca", "ef", "ALTA")
+    ev = a.registrar_evidencia_de_hallazgo("H-01", "Captura", "Técnica", date(2026, 11, 13), archivo_id="arch-1")
+    assert h.codigos_evidencia == [ev.codigo]
+    assert ev in a.evaluacion(CAT.por_codigo("8.8").id).evidencias  # trazabilidad evaluación → evidencia
+    assert a.evidencias_de_hallazgo("H-01") == [ev] and a.hallazgos_de_evidencia(ev.codigo) == ["H-01"]
+
+
+def test_evidencia_de_hallazgo_exige_archivo_o_referencia():
+    a = evaluada_abc()
+    a.registrar_hallazgo(CAT.por_codigo("8.8").id, "c", "cr", "ca", "ef", "ALTA")
+    with pytest.raises(DatoInvalido):
+        a.registrar_evidencia_de_hallazgo("H-01", "Captura", "Técnica", date(2026, 11, 13))
+    assert a.hallazgo("H-01").codigos_evidencia == []
+
+
+def test_vincular_y_desvincular_evidencia_existente():
+    a = evaluada_abc()
+    a.registrar_hallazgo(CAT.por_codigo("8.13").id, "c", "cr", "ca", "ef", "MEDIA")
+    a.vincular_evidencia("H-01", "EV-01")
+    with pytest.raises(ReglaDeNegocioViolada, match="ya respalda"):
+        a.vincular_evidencia("H-01", "EV-01")
+    with pytest.raises(NoEncontrado):
+        a.vincular_evidencia("H-01", "EV-99")
+    a.desvincular_evidencia("H-01", "EV-01")
+    assert a.hallazgo("H-01").codigos_evidencia == [] and a.evidencia("EV-01")  # la evidencia se conserva
+    with pytest.raises(NoEncontrado):
+        a.desvincular_evidencia("H-01", "EV-01")
+
+
+def test_eliminar_evidencia_la_quita_de_los_hallazgos():
+    a = evaluada_abc()
+    a.registrar_hallazgo(CAT.por_codigo("8.13").id, "c", "cr", "ca", "ef", "MEDIA")
+    a.vincular_evidencia("H-01", "EV-01")
+    a.eliminar_evidencia("EV-01")
+    assert a.hallazgo("H-01").codigos_evidencia == []

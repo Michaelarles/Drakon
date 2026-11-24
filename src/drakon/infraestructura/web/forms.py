@@ -92,13 +92,13 @@ class EvidenciaForm(FormularioBase):
     referencia = forms.CharField(
         label="Referencia o enlace", required=False, max_length=500, help_text="Obligatoria si no adjunta un archivo."
     )
-    archivo = forms.FileField(label="Archivo (PDF, PNG o JPG, máx. 5 MB)", required=False)
+    archivo = forms.FileField(label="Archivo (PDF, Word, PNG o JPG, máx. 5 MB)", required=False)
     es_simulada = forms.BooleanField(label="Evidencia simulada (ejercicio académico)", required=False, initial=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["es_simulada"].widget.attrs["class"] = "form-check-input"
-        self.fields["archivo"].widget.attrs["accept"] = ".pdf,.png,.jpg,.jpeg"
+        self.fields["archivo"].widget.attrs["accept"] = ".pdf,.docx,.png,.jpg,.jpeg"
 
     def clean(self):
         datos = super().clean()

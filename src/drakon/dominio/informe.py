@@ -28,6 +28,7 @@ def construir_contenido(auditoria: Auditoria, controles: dict[int, Control], aud
         else e.codigo_control
         for e in auditoria.evaluaciones
     }
+    evidencias = {ev.codigo: ev for ev in auditoria.todas_las_evidencias}
     aplicables = ind.aplicables
     base_txt = f"{ind.cumplimiento_base:.1f}".replace(".", ",") if ind.cumplimiento_base is not None else "sin datos"
     severidades = ind.hallazgos_por_severidad
@@ -84,6 +85,15 @@ def construir_contenido(auditoria: Auditoria, controles: dict[int, Control], aud
                     }
                     for r in h.recomendaciones
                 ],
+                "evidencias": [
+                    {
+                        "codigo": c,
+                        "descripcion": evidencias[c].descripcion,
+                        "soporte": evidencias[c].archivo_nombre or evidencias[c].referencia,
+                    }
+                    for c in h.codigos_evidencia
+                    if c in evidencias
+                ],
             }
             for h in auditoria.hallazgos
         ],
@@ -96,6 +106,7 @@ def construir_contenido(auditoria: Auditoria, controles: dict[int, Control], aud
                 "fecha": ev.fecha.isoformat(),
                 "simulada": ev.es_simulada,
                 "referencia": ev.referencia or ev.archivo_nombre,
+                "hallazgos": auditoria.hallazgos_de_evidencia(ev.codigo),
             }
             for e in auditoria.evaluaciones
             for ev in e.evidencias

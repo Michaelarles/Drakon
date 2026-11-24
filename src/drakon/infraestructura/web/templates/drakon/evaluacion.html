@@ -79,11 +79,12 @@
         <ul class="list-unstyled d-flex flex-column gap-2 mb-0">
           {% for x in ev.evidencias %}
           <li class="d-flex flex-wrap align-items-center gap-3 p-3 rounded-4" style="background:var(--blanco)">
-            <span class="d-flex align-items-center justify-content-center rounded-3 bg-durazno" style="width:42px;height:42px"><i class="bi {% if x.archivo_id %}bi-file-earmark-text{% else %}bi-link-45deg{% endif %} text-ember fs-5" aria-hidden="true"></i></span>
+            <span class="d-flex align-items-center justify-content-center rounded-3 bg-durazno" style="width:42px;height:42px"><i class="bi {% if x.archivo_nombre|tipo_archivo == 'pdf' %}bi-file-earmark-pdf{% elif x.archivo_nombre|tipo_archivo == 'word' %}bi-file-earmark-word{% elif x.archivo_nombre|tipo_archivo == 'imagen' %}bi-file-earmark-image{% elif x.archivo_id %}bi-file-earmark-text{% else %}bi-link-45deg{% endif %} text-ember fs-5" aria-hidden="true"></i></span>
             <div class="flex-grow-1 small" style="min-width:200px">
               <b>{{ x.codigo }} · {{ x.descripcion }}</b><br>
               <span class="text-muted">{{ x.fuente }} · {{ x.fecha|date:"j M Y" }}{% if x.archivo_nombre %} · <a href="{% url 'evidencia_archivo' a.id x.codigo %}" target="_blank" rel="noopener">{{ x.archivo_nombre }}</a>{% endif %}{% if x.referencia %} · {{ x.referencia }}{% endif %}</span>
             </div>
+            {% for hc in respaldos|lista:x.codigo %}<a class="chip chip-borrador text-decoration-none" href="{% url 'hallazgos' a.id %}#{{ hc }}" title="Esta evidencia respalda el hallazgo {{ hc }}">Respalda {{ hc }}</a>{% endfor %}
             {% if x.es_simulada %}<span class="chip chip-borrador">Simulada</span>{% endif %}
             {% if editable %}
             <div class="d-flex gap-1">

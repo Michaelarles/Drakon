@@ -27,6 +27,7 @@ from .models import (
     ControlModel,
     EvaluacionControlModel,
     EvidenciaModel,
+    HallazgoEvidenciaModel,
     HallazgoModel,
     InformeModel,
     RecomendacionModel,
@@ -94,6 +95,7 @@ def _auditoria_a_dominio(m: AuditoriaModel) -> Auditoria:
                 )
                 for r in h.recomendaciones.all()
             ],
+            codigos_evidencia=[v.evidencia.codigo for v in h.vinculos_evidencia.all()],
         )
         for h in m.hallazgos.all()
     ]
@@ -118,7 +120,13 @@ def _consulta_auditorias():
             "evaluaciones",
             queryset=EvaluacionControlModel.objects.select_related("control").prefetch_related("evidencias"),
         ),
-        Prefetch("hallazgos", queryset=HallazgoModel.objects.prefetch_related("recomendaciones")),
+        Prefetch(
+            "hallazgos",
+            queryset=HallazgoModel.objects.prefetch_related(
+                "recomendaciones",
+                Prefetch("vinculos_evidencia", queryset=HallazgoEvidenciaModel.objects.select_related("evidencia")),
+            ),
+        ),
     )
 
 
@@ -164,7 +172,7 @@ class RepositorioAuditoriasDjango:
         HallazgoModel.objects.filter(auditoria=m).exclude(codigo__in=codigos_h).delete()
         EvaluacionControlModel.objects.filter(auditoria=m).exclude(control_id__in=a.ids_controles).delete()
 
-        eval_ids = {}
+        eval_ids, evidencia_ids = {}, {}
         for ev in a.evaluaciones:
             em, _ = EvaluacionControlModel.objects.update_or_create(
                 auditoria=m,
@@ -188,7 +196,7 @@ class RepositorioAuditoriasDjango:
                         archivo_nombre=x.archivo_nombre,
                     ),
                 )
-                x.id = xm.id
+                x.id = evidencia_ids[x.codigo] = xm.id
 
         for h in a.hallazgos:
             hm, _ = HallazgoModel.objects.update_or_create(
@@ -214,6 +222,13 @@ class RepositorioAuditoriasDjango:
                     defaults=dict(descripcion=r.descripcion, prioridad=r.prioridad.value, plazo_dias=r.plazo_dias),
                 )
                 r.id = rm.id
+            # Evidencias que respaldan el hallazgo, en el orden en que se vincularon
+            ids_vinculadas = [evidencia_ids[c] for c in h.codigos_evidencia]
+            HallazgoEvidenciaModel.objects.filter(hallazgo=hm).exclude(evidencia_id__in=ids_vinculadas).delete()
+            for orden, id_evidencia in enumerate(ids_vinculadas):
+                HallazgoEvidenciaModel.objects.update_or_create(
+                    hallazgo=hm, evidencia_id=id_evidencia, defaults=dict(orden=orden)
+                )
         return a
 
 

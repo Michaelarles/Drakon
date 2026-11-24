@@ -145,6 +145,14 @@ HALLAZGOS = [
     ),
 ]
 
+# Evidencia que respalda cada hallazgo (en el mismo orden que HALLAZGOS)
+EVIDENCIAS_HALLAZGOS = [
+    ("Acta de entrevista con el líder de infraestructura: no hay escaneos programados", "Entrevista"),
+    ("Acta de entrevista con TI: los incidentes se reportan por correo sin registro", "Entrevista"),
+    ("Bitácora de respaldos sin registros de pruebas de restauración", "Registro"),
+    ("Captura de la configuración de registros locales en el servidor de aplicaciones", "Técnica"),
+]
+
 
 class Command(BaseCommand):
     help = "Carga la auditoría simulada de Empresa ABC (datos ficticios)."
@@ -201,9 +209,21 @@ class Command(BaseCommand):
                     ),
                 )
         c.cambiar_estado().ejecutar(a.id, "revision")
-        for codigo, sev, cond, crit, causa, efecto, rec, prio, plazo in HALLAZGOS:
-            c.registrar_hallazgo().ejecutar(
+        for (codigo, sev, cond, crit, causa, efecto, rec, prio, plazo), (soporte, fuente) in zip(
+            HALLAZGOS, EVIDENCIAS_HALLAZGOS, strict=True
+        ):
+            h = c.registrar_hallazgo().ejecutar(
                 a.id, DatosHallazgo(ids[codigo], cond, crit, causa, efecto, sev, rec, prio, plazo)
+            )
+            c.registrar_evidencia_hallazgo().ejecutar(
+                a.id,
+                h.codigo,
+                DatosEvidencia(
+                    descripcion=soporte,
+                    fuente=fuente,
+                    fecha=date(2026, 11, 13),
+                    referencia=f"Evidencia simulada – {soporte}",
+                ),
             )
         if cerrar:
             c.cambiar_estado().ejecutar(a.id, "cerrar")

@@ -1,10 +1,13 @@
 """Casos de uso probados con adaptadores en memoria (sin Django ni base de datos)."""
 
+import io
+import zipfile
 from datetime import date
 
 import pytest
 
 from drakon.aplicacion.casos_uso import (
+    TIPO_DOCX,
     CambiarEstadoAuditoria,
     ConsultarDashboard,
     CrearAuditoria,
@@ -12,11 +15,14 @@ from drakon.aplicacion.casos_uso import (
     DatosEvidencia,
     DatosHallazgo,
     DescargarInformePDF,
+    DesvincularEvidenciaHallazgo,
     EvaluarControl,
     GenerarInforme,
     RegistrarEvidencia,
+    RegistrarEvidenciaHallazgo,
     RegistrarHallazgo,
     SeleccionarControles,
+    VincularEvidenciaHallazgo,
 )
 from drakon.aplicacion.puertos import ArchivoAdjunto
 from drakon.dominio.errores import DatoInvalido
@@ -58,11 +64,14 @@ def test_flujo_completo_y_informe(ctx):
     id_a = flujo_abc(ctx)
     CambiarEstadoAuditoria(ctx["aud"]).ejecutar(id_a, "revision")
     for codigo in ("8.8", "5.24", "8.13"):
-        RegistrarHallazgo(ctx["aud"]).ejecutar(
+        h = RegistrarHallazgo(ctx["aud"]).ejecutar(
             id_a,
             DatosHallazgo(
                 ctx["cat"].por_codigo(codigo).id, "Cond", "Crit", "Causa", "Efecto", "ALTA", "Rec", "ALTA", 60
             ),
+        )
+        RegistrarEvidenciaHallazgo(ctx["aud"], ctx["alm"]).ejecutar(
+            id_a, h.codigo, DatosEvidencia("Acta", "Entrevista", date(2026, 11, 13), referencia="ACTA")
         )
     CambiarEstadoAuditoria(ctx["aud"]).ejecutar(id_a, "cerrar")
 
@@ -71,6 +80,7 @@ def test_flujo_completo_y_informe(ctx):
     assert informe.contenido["indicadores"]["cumplimiento_base"] == 33.3
     assert informe.contenido["auditoria"]["auditor"] == "Auditor 7"
     assert len(informe.contenido["hallazgos"]) == 3
+    assert [e["descripcion"] for e in informe.contenido["hallazgos"][0]["evidencias"]] == ["Acta"]
     assert informe.contenido["preliminar"] is False
     _, pdf = DescargarInformePDF(ctx["inf"], PDFFalso()).ejecutar(informe.id)
     assert pdf.startswith(b"%PDF")
@@ -161,3 +171,78 @@ def test_eliminar_auditoria_borra_archivos(ctx):
     assert ctx["alm"].archivos
     EliminarAuditoria(ctx["aud"], ctx["alm"]).ejecutar(id_a)
     assert not ctx["alm"].archivos and ctx["aud"].listar() == []
+
+
+# ------------------------------------------- evidencias que respaldan hallazgos
+def docx_minimo() -> bytes:
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("word/document.xml", "<w:document/>")
+    return buf.getvalue()
+
+
+def con_hallazgo(ctx):
+    id_a = flujo_abc(ctx)
+    RegistrarHallazgo(ctx["aud"]).ejecutar(
+        id_a, DatosHallazgo(ctx["cat"].por_codigo("8.8").id, "Cond", "Crit", "Causa", "Efecto", "ALTA")
+    )
+    return id_a
+
+
+@pytest.mark.parametrize(
+    "archivo",
+    [
+        ArchivoAdjunto("acta.docx", TIPO_DOCX, docx_minimo()),
+        ArchivoAdjunto("captura.png", "image/png", b"\x89PNG\r\n\x1a\n"),
+        ArchivoAdjunto("informe.pdf", "application/pdf", b"%PDF-1.7"),
+    ],
+)
+def test_hallazgo_acepta_word_imagen_y_pdf(ctx, archivo):
+    id_a = con_hallazgo(ctx)
+    ev = RegistrarEvidenciaHallazgo(ctx["aud"], ctx["alm"]).ejecutar(
+        id_a, "H-01", DatosEvidencia("Soporte", "Documental", date(2026, 11, 13), archivo=archivo)
+    )
+    a = ctx["aud"].obtener(id_a)
+    assert a.hallazgo("H-01").codigos_evidencia == [ev.codigo]
+    assert ctx["alm"].obtener(ev.archivo_id).contenido == archivo.contenido
+
+
+@pytest.mark.parametrize(
+    "archivo",
+    [
+        ArchivoAdjunto("falso.docx", TIPO_DOCX, b"PK\x03\x04 no es un zip"),
+        ArchivoAdjunto("vacio.docx", TIPO_DOCX, b""),
+        ArchivoAdjunto("hoja.xlsx", "application/vnd.ms-excel", b"PK\x03\x04"),
+        ArchivoAdjunto("grande.pdf", "application/pdf", b"%PDF" + b"0" * (5 * 1024 * 1024)),
+    ],
+)
+def test_hallazgo_rechaza_archivos_invalidos_sin_dejar_huerfanos(ctx, archivo):
+    id_a = con_hallazgo(ctx)
+    with pytest.raises(DatoInvalido):
+        RegistrarEvidenciaHallazgo(ctx["aud"], ctx["alm"]).ejecutar(
+            id_a, "H-01", DatosEvidencia("Soporte", "Documental", date(2026, 11, 13), archivo=archivo)
+        )
+    assert ctx["alm"].archivos == {} and ctx["aud"].obtener(id_a).hallazgo("H-01").codigos_evidencia == []
+
+
+def test_docx_sin_documento_de_word_se_rechaza(ctx):
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("otro.txt", "hola")
+    id_a = con_hallazgo(ctx)
+    with pytest.raises(DatoInvalido, match="no corresponde"):
+        RegistrarEvidenciaHallazgo(ctx["aud"], ctx["alm"]).ejecutar(
+            id_a,
+            "H-01",
+            DatosEvidencia(
+                "Soporte", "Documental", date(2026, 11, 13), archivo=ArchivoAdjunto("x.docx", TIPO_DOCX, buf.getvalue())
+            ),
+        )
+
+
+def test_vincular_y_desvincular_evidencia_existente(ctx):
+    id_a = con_hallazgo(ctx)
+    VincularEvidenciaHallazgo(ctx["aud"]).ejecutar(id_a, "H-01", "EV-01")
+    assert ctx["aud"].obtener(id_a).hallazgo("H-01").codigos_evidencia == ["EV-01"]
+    DesvincularEvidenciaHallazgo(ctx["aud"]).ejecutar(id_a, "H-01", "EV-01")
+    assert ctx["aud"].obtener(id_a).hallazgo("H-01").codigos_evidencia == []

@@ -1,5 +1,8 @@
 """Flujo completo por HTTP: evaluación, evidencias, hallazgos y recomendaciones (CP-04 a CP-08)."""
 
+import io
+import zipfile
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -15,6 +18,18 @@ from drakon.infraestructura.persistencia.models import (
 )
 
 pytestmark = pytest.mark.django_db
+
+
+def docx_minimo() -> bytes:
+    """Un .docx mínimo válido: un ZIP con word/document.xml."""
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("[Content_Types].xml", "<Types/>")
+        z.writestr("word/document.xml", "<w:document/>")
+    return buf.getvalue()
+
+
+PNG_MINIMO = b"\x89PNG\r\n\x1a\n" + b"\x00" * 32
 CODIGOS = ["5.1", "5.15", "5.18", "5.24", "6.3", "7.2", "8.5", "8.7", "8.8", "8.13", "8.15", "8.23", "8.31"]
 
 
@@ -171,10 +186,51 @@ def test_cp07_cp08_hallazgos_recomendaciones_y_cierre(client, auditoria):
 
     r = client.post(reverse("auditoria_estado", args=[a.id]), {"accion": "cerrar"}, follow=True)
     assert "H-03 no tiene recomendación" in r.content.decode()  # CP-08
+    assert "H-01 no tiene evidencia que lo respalde" in r.content.decode()
     client.post(
         reverse("recomendacion_agregar", args=[a.id, "H-03"]),
         {"recomendacion": "Pruebas trimestrales", "prioridad": "MEDIA", "plazo_dias": 90},
     )
+    client.post(reverse("auditoria_estado", args=[a.id]), {"accion": "cerrar"})
+    a.refresh_from_db()
+    assert a.estado == "EN_REVISION"  # aún faltan las evidencias de los hallazgos
+
+    # Evidencias de los hallazgos: un Word, una imagen y una evidencia ya registrada
+    datos_ev = {"descripcion": "Acta de entrevista", "fuente": "Entrevista", "fecha": "2026-11-13"}
+    client.post(
+        reverse("hallazgo_evidencia_agregar", args=[a.id, "H-01"]),
+        dict(datos_ev, archivo=SimpleUploadedFile("acta.docx", docx_minimo())),
+    )
+    client.post(
+        reverse("hallazgo_evidencia_agregar", args=[a.id, "H-02"]),
+        dict(datos_ev, descripcion="Captura de pantalla", archivo=SimpleUploadedFile("captura.png", PNG_MINIMO)),
+    )
+    client.post(reverse("hallazgo_evidencia_vincular", args=[a.id, "H-03"]), {"evidencia": "EV-01"})
+    pagina = client.get(reverse("hallazgos", args=[a.id])).content.decode()
+    assert "acta.docx" in pagina and "captura.png" in pagina and "Sin evidencia:" not in pagina
+
+    word = client.get(reverse("evidencia_archivo", args=[a.id, "EV-02"]))
+    assert word["Content-Disposition"].startswith("attachment") and "acta.docx" in word["Content-Disposition"]
+    imagen = client.get(reverse("evidencia_archivo", args=[a.id, "EV-03"]))
+    assert imagen["Content-Type"] == "image/png" and imagen["Content-Disposition"].startswith("inline")
+
+    # Un Word falso (renombrado) se rechaza por su contenido
+    r = client.post(
+        reverse("hallazgo_evidencia_agregar", args=[a.id, "H-01"]),
+        dict(datos_ev, archivo=SimpleUploadedFile("falso.docx", b"PK\x03\x04 no es un docx")),
+        follow=True,
+    )
+    assert "no corresponde" in r.content.decode()
+
+    # Quitar el vínculo pide confirmación y luego deja el hallazgo sin evidencia
+    assert (
+        "¿Quitar la evidencia EV-01"
+        in client.get(reverse("hallazgo_evidencia_quitar", args=[a.id, "H-03", "EV-01"])).content.decode()
+    )
+    client.post(reverse("hallazgo_evidencia_quitar", args=[a.id, "H-03", "EV-01"]))
+    r = client.post(reverse("auditoria_estado", args=[a.id]), {"accion": "cerrar"}, follow=True)
+    assert "H-03 no tiene evidencia" in r.content.decode()
+    client.post(reverse("hallazgo_evidencia_vincular", args=[a.id, "H-03"]), {"evidencia": "EV-01"})
     client.post(reverse("auditoria_estado", args=[a.id]), {"accion": "cerrar"})
     a.refresh_from_db()
     assert a.estado == "CERRADA"

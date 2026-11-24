@@ -59,6 +59,21 @@ urlpatterns = [
         views.recomendacion_eliminar,
         name="recomendacion_eliminar",
     ),
+    path(
+        "auditorias/<int:id_auditoria>/hallazgos/<str:codigo>/evidencias/",
+        views.hallazgo_evidencia_agregar,
+        name="hallazgo_evidencia_agregar",
+    ),
+    path(
+        "auditorias/<int:id_auditoria>/hallazgos/<str:codigo>/evidencias/vincular/",
+        views.hallazgo_evidencia_vincular,
+        name="hallazgo_evidencia_vincular",
+    ),
+    path(
+        "auditorias/<int:id_auditoria>/hallazgos/<str:codigo>/evidencias/<str:codigo_evidencia>/quitar/",
+        views.hallazgo_evidencia_quitar,
+        name="hallazgo_evidencia_quitar",
+    ),
     path("auditorias/<int:id_auditoria>/informe/", views.informe_generar, name="informe_generar"),
     path("informes/<int:id_informe>/pdf/", views.informe_pdf, name="informe_pdf"),
 ]

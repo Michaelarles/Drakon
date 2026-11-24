@@ -14,12 +14,12 @@
 {% if a.estado.value == "EN_REVISION" and problemas_cierre %}
 <div class="alert alert-warning"><img src="{% static 'drakon/avatar/error.png' %}" alt=""><div><b>Para cerrar la auditoría falta:</b> {{ problemas_cierre|join:" " }}</div></div>
 {% elif a.estado.value == "EN_REVISION" %}
-<div class="alert alert-success"><img src="{% static 'drakon/avatar/listo.png' %}" alt=""><div>Todos los hallazgos tienen recomendación. Ya puedes <a href="{% url 'auditoria_detalle' a.id %}">cerrar la auditoría</a>.</div></div>
+<div class="alert alert-success"><img src="{% static 'drakon/avatar/listo.png' %}" alt=""><div>Todos los hallazgos tienen recomendación y evidencia. Ya puedes <a href="{% url 'auditoria_detalle' a.id %}">cerrar la auditoría</a>.</div></div>
 {% endif %}
 
 {% if filas %}
 <div class="d-flex flex-column gap-3">
-  {% for h, ctrl in filas %}
+  {% for h, ctrl, evidencias, disponibles in filas %}
   <article class="tarjeta" id="{{ h.codigo }}">
     <div class="tarjeta-cuerpo">
       <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
@@ -38,6 +38,61 @@
         <div class="col-md-6"><dt>Causa</dt><dd>{{ h.causa|linebreaksbr }}</dd></div>
         <div class="col-md-6"><dt>Efecto o riesgo</dt><dd>{{ h.efecto|linebreaksbr }}</dd></div>
       </dl>
+      <div class="rounded-4 p-3 mt-1 mb-3" style="background:var(--blanco)">
+        <div class="small fw-bold mb-2"><i class="bi bi-paperclip" aria-hidden="true"></i> Evidencias que respaldan el hallazgo</div>
+        {% if evidencias %}
+        <ul class="list-unstyled d-flex flex-column gap-2 mb-0">
+          {% for x in evidencias %}{% with tipo=x.archivo_nombre|tipo_archivo %}
+          <li class="d-flex flex-wrap align-items-center gap-3 small">
+            {% if tipo == "imagen" %}
+            <a href="{% url 'evidencia_archivo' a.id x.codigo %}" target="_blank" rel="noopener" aria-label="Ver imagen {{ x.archivo_nombre }}"><img src="{% url 'evidencia_archivo' a.id x.codigo %}" alt="Evidencia {{ x.codigo }}" class="rounded-3" style="width:56px;height:56px;object-fit:cover;border:1px solid #eee"></a>
+            {% else %}
+            <span class="d-flex align-items-center justify-content-center rounded-3 bg-durazno" style="width:56px;height:56px"><i class="bi {% if tipo == 'pdf' %}bi-file-earmark-pdf{% elif tipo == 'word' %}bi-file-earmark-word{% else %}bi-link-45deg{% endif %} text-ember fs-4" aria-hidden="true"></i></span>
+            {% endif %}
+            <div class="flex-grow-1" style="min-width:200px">
+              <b>{{ x.codigo }} · {{ x.descripcion }}</b><br>
+              <span class="text-muted">{{ x.fuente }} · {{ x.fecha|date:"j M Y" }}{% if x.archivo_nombre %} · <a href="{% url 'evidencia_archivo' a.id x.codigo %}" {% if tipo == "word" %}download{% else %}target="_blank" rel="noopener"{% endif %}>{% if tipo == "word" %}<i class="bi bi-download" aria-hidden="true"></i> {% endif %}{{ x.archivo_nombre }}</a>{% endif %}{% if x.referencia %} · {{ x.referencia }}{% endif %}</span>
+            </div>
+            {% if x.es_simulada %}<span class="chip chip-borrador">Simulada</span>{% endif %}
+            {% if editable %}<a class="btn btn-outline-secondary btn-sm" href="{% url 'hallazgo_evidencia_quitar' a.id h.codigo x.codigo %}" aria-label="Quitar la evidencia {{ x.codigo }} del hallazgo {{ h.codigo }}"><i class="bi bi-x-lg" aria-hidden="true"></i></a>{% endif %}
+          </li>
+          {% endwith %}{% endfor %}
+        </ul>
+        {% else %}
+        <div class="small" style="color:#A8321F;font-weight:700"><i class="bi bi-exclamation-circle" aria-hidden="true"></i> Sin evidencia: es obligatoria para cerrar la auditoría.</div>
+        {% endif %}
+        {% if editable %}
+        <button class="btn btn-outline-primary btn-sm mt-3" type="button" data-bs-toggle="collapse" data-bs-target="#ev-{{ h.codigo }}" aria-expanded="{% if abrir_evidencia == h.codigo %}true{% else %}false{% endif %}" aria-controls="ev-{{ h.codigo }}"><i class="bi bi-paperclip" aria-hidden="true"></i> Adjuntar evidencia</button>
+        <div class="collapse {% if abrir_evidencia == h.codigo %}show{% endif %}" id="ev-{{ h.codigo }}">
+          {% if disponibles %}
+          <form method="post" action="{% url 'hallazgo_evidencia_vincular' a.id h.codigo %}" class="row g-2 mt-1 align-items-end">{% csrf_token %}
+            <div class="col-md-9"><label class="form-label" for="vin-{{ h.codigo }}">Usar una evidencia ya registrada</label>
+              <select class="form-select" id="vin-{{ h.codigo }}" name="evidencia" required>
+                <option value="">Seleccione…</option>
+                {% for x in disponibles %}<option value="{{ x.codigo }}">{{ x.codigo }} · {{ x.descripcion|truncatechars:70 }}{% if x.archivo_nombre %} ({{ x.archivo_nombre }}){% endif %}</option>{% endfor %}
+              </select></div>
+            <div class="col-md-3"><button class="btn btn-outline-primary w-100"><i class="bi bi-link-45deg" aria-hidden="true"></i> Vincular</button></div>
+          </form>
+          <div class="small text-muted text-center my-2">o sube una nueva</div>
+          {% endif %}
+          <form method="post" enctype="multipart/form-data" action="{% url 'hallazgo_evidencia_agregar' a.id h.codigo %}" class="row g-2 mt-1 p-3 rounded-4" style="border:1.5px dashed var(--naranja)">{% csrf_token %}
+            <div class="col-md-8"><label class="form-label requerido" for="evd-{{ h.codigo }}">Descripción</label>
+              <input class="form-control" id="evd-{{ h.codigo }}" name="descripcion" maxlength="500" required></div>
+            <div class="col-md-4"><label class="form-label requerido" for="evf-{{ h.codigo }}">Fuente</label>
+              <select class="form-select" id="evf-{{ h.codigo }}" name="fuente">{% for v, e in form_evidencia.fields.fuente.choices %}<option value="{{ v }}">{{ e }}</option>{% endfor %}</select></div>
+            <div class="col-md-4"><label class="form-label requerido" for="evt-{{ h.codigo }}">Fecha</label>
+              <input class="form-control" type="date" id="evt-{{ h.codigo }}" name="fecha" value="{{ a.fecha_inicio|date:'Y-m-d' }}" required></div>
+            <div class="col-md-8"><label class="form-label" for="eva-{{ h.codigo }}">Archivo (PDF, Word, PNG o JPG, máx. 5 MB)</label>
+              <input class="form-control" type="file" id="eva-{{ h.codigo }}" name="archivo" accept=".pdf,.docx,.png,.jpg,.jpeg"></div>
+            <div class="col-12"><label class="form-label" for="evr-{{ h.codigo }}">Referencia o enlace</label>
+              <input class="form-control" id="evr-{{ h.codigo }}" name="referencia" maxlength="500" aria-describedby="evr-ayuda-{{ h.codigo }}">
+              <div class="form-text" id="evr-ayuda-{{ h.codigo }}">Obligatoria si no adjunta un archivo.</div></div>
+            <div class="col-12 form-check ms-2"><input class="form-check-input" type="checkbox" id="evs-{{ h.codigo }}" name="es_simulada" checked> <label class="form-check-label" for="evs-{{ h.codigo }}">Evidencia simulada (ejercicio académico)</label></div>
+            <div class="col-12"><button class="btn btn-primary"><i class="bi bi-upload" aria-hidden="true"></i> Guardar y vincular</button></div>
+          </form>
+        </div>
+        {% endif %}
+      </div>
       <div class="rounded-4 p-3 mt-1" style="background:var(--blanco)">
         <div class="small fw-bold mb-2">Recomendaciones</div>
         {% for r in h.recomendaciones %}
